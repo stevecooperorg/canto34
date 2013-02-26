@@ -1,24 +1,14 @@
-// Canto 34 is a library for building recursive-descent parsers.
-//
-// When it comes to writing a parser, you get two main choices. Write your
-// own, or use a parser generator like PEGJS or Jison. I've never really had
-// much success with parser generators, and it's always seemed pretty easy to
-// write a recursive-descent parser yourself, *if* you have some basic tools
-// like a regex-based lexer, and some basic functions for matching tokens and
-// reporting errors. Canto34 gives you the functions you need to write a
-// recursive descent parser yourself.
-
 (function(canto34){
 
-    // your code goes here
-
-   // A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
-	// 
-	//     { 
-    //         name: "whitespace",
-    //         regexp: "[ \t\r\n]+",
-    //         ignore: true
-    //     }
+    /**
+        A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
+	
+	    { 
+             name: "whitespace",
+             regexp: "[ \t\r\n]+",
+             ignore: true
+         }
+    **/
 	canto34.Lexer = function() {
 		this.patterns = [];
 	};
@@ -28,7 +18,7 @@
     }
 
 	canto34.Lexer.prototype = {
-		addPattern: function(pattern) {
+		addTokenType: function(pattern) {
 			if (!pattern.name) {
 				throw new PatternDefinitionException("Patterns must have a 'name' property");
 			}
@@ -37,7 +27,8 @@
 				throw new PatternDefinitionException("Patterns must have a 'regexp' property");
 			}
 
-			if (pattern.regexp instanceof RegExp) { 
+
+			if (!(pattern.regexp instanceof RegExp)) { 
 				throw new PatternDefinitionException("Patterns 'regexp' property must be an instance of RegExp");
 			}
 		}

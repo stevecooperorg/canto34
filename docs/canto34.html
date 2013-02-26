@@ -8,9 +8,14 @@ like a regex-based lexer, and some basic functions for matching tokens and
 reporting errors. Canto34 gives you the functions you need to write a
 recursive descent parser yourself.</p>
 
-             </div>                          <div class="content"><div class="highlight"><pre>var Canto34;
-(function(canto) {
+             </div>                          <div class="content"><div class="highlight"><pre>
+(function(canto34){
+
 </pre></div></div>                      </li>                              <li id="section-2">             <div class="annotation">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>                           
+
+<p>your code goes here</p>
+
+             </div>                      </li>                              <li id="section-3">             <div class="annotation">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>                           
 
 <p>A <em>Lexer</em> takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like </p>
 
@@ -19,7 +24,7 @@ recursive descent parser yourself.</p>
     regexp: "[ \t\r\n]+",
     ignore: true
 }
-</code></pre>             </div>                          <div class="content"><div class="highlight"><pre>	canto.Lexer = function() {
+</code></pre>             </div>                          <div class="content"><div class="highlight"><pre>	canto34.Lexer = function() {
 		this.patterns = [];
 	};
 
@@ -27,7 +32,7 @@ recursive descent parser yourself.</p>
     	this.message = message;
     }
 
-	canto.Lexer.prototype = {
+	canto34.Lexer.prototype = {
 		addPattern: function(pattern) {
 			if (!pattern.name) {
 				throw new PatternDefinitionException(&quot;Patterns must have a &#x27;name&#x27; property&quot;);
@@ -43,5 +48,6 @@ recursive descent parser yourself.</p>
 		}
 	};
 
-})(Canto34 || Canto34 = {});
+})(typeof exports === &#x27;undefined&#x27;? this[&#x27;canto34&#x27;]={}: exports);
+
 </pre></div></div>                      </li>              </ul>    </div> </body> </html> 
