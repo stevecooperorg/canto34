@@ -40,4 +40,4 @@ var Canto34;
 		}
 	};
 
-})(Canto34 || Canto34 = {});
+})(Canto34 ? Canto34 : Canto34 = {});
