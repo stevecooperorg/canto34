@@ -7,16 +7,19 @@
 // like a regex-based lexer, and some basic functions for matching tokens and
 // reporting errors. Canto34 gives you the functions you need to write a
 // recursive descent parser yourself.
-var Canto34;
-(function(canto) {
-	// A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
+
+(function(canto34){
+
+    // your code goes here
+
+   // A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
 	// 
 	//     { 
     //         name: "whitespace",
     //         regexp: "[ \t\r\n]+",
     //         ignore: true
     //     }
-	canto.Lexer = function() {
+	canto34.Lexer = function() {
 		this.patterns = [];
 	};
 
@@ -24,7 +27,7 @@ var Canto34;
     	this.message = message;
     }
 
-	canto.Lexer.prototype = {
+	canto34.Lexer.prototype = {
 		addPattern: function(pattern) {
 			if (!pattern.name) {
 				throw new PatternDefinitionException("Patterns must have a 'name' property");
@@ -40,4 +43,4 @@ var Canto34;
 		}
 	};
 
-})(Canto34 ? Canto34 : Canto34 = {});
+})(typeof exports === 'undefined'? this['canto34']={}: exports);
