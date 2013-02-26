@@ -15,17 +15,31 @@ recursive descent parser yourself.</p>
 <p>A <em>Lexer</em> takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like </p>
 
 <pre><code>{ 
-    whitespace: {
-        pattern: "[ \t\r\n]+",
-        ignore: true
+    name: "whitespace",
+    regexp: "[ \t\r\n]+",
+    ignore: true
 }
 </code></pre>             </div>                          <div class="content"><div class="highlight"><pre>	canto.Lexer = function() {
 		this.patterns = [];
 	};
 
-	canto.Lexer.prototype = {
-		addToken: function(tokenName, regex) {
+    var PatternDefinitionException = function(message) {
+    	this.message = message;
+    }
 
+	canto.Lexer.prototype = {
+		addPattern: function(pattern) {
+			if (!pattern.name) {
+				throw new PatternDefinitionException(&quot;Patterns must have a &#x27;name&#x27; property&quot;);
+			}
+
+			if (!pattern.regexp) { 
+				throw new PatternDefinitionException(&quot;Patterns must have a &#x27;regexp&#x27; property&quot;);
+			}
+
+			if (pattern.regexp instanceof RegExp) { 
+				throw new PatternDefinitionException(&quot;Patterns &#x27;regexp&#x27; property must be an instance of RegExp&quot;);
+			}
 		}
 	};
 

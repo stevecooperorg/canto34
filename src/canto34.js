@@ -13,7 +13,7 @@ var Canto34;
 	// 
 	//     { 
     //         name: "whitespace",
-    //         pattern: "[ \t\r\n]+",
+    //         regexp: "[ \t\r\n]+",
     //         ignore: true
     //     }
 	canto.Lexer = function() {
