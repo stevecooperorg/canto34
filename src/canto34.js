@@ -107,20 +107,19 @@
 	canto34.StandardTokenTypes.integer = function() {
 		return {
 			name: "integer",
-			regexp: /-?\d+/,
+			regexp: /^-?\d+/,
 			interpreter: function(content) {
 				return parseInt(content);
 			}
 		};
 	};
 
-    // SC: I'll come back to this -- it's not got tests
-	// canto34.StandardTokenTypes.whitespace = function() {
-	// 	return {
-	// 		name: "whitespace",
-	// 		ignore: true,
-	// 		regexp: /[ \t]/
-	// 	};
-	// };
+	canto34.StandardTokenTypes.whitespace = function() {
+		return {
+			name: "whitespace",
+			ignore: true,
+			regexp: /[ \t]+/
+		};
+	};
 
 })(typeof exports === 'undefined'? this['canto34']={}: exports);
