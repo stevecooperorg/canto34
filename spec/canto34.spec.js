@@ -140,6 +140,30 @@ describe('When lexing tokens', function() {
 			{ content: 123, type:"integer", position:0 }
 		]);
 	});
+
+	it('ensures that custom interpeters track position correctly', function() {
+		lexer.addTokenType({
+			name: "threeAs",
+			regexp: /aaa/,
+			interpreter: function(content) {
+				return "A";
+			}
+		});
+
+		lexer.addTokenType({
+			name: "threeBs",
+			regexp: /bbb/,
+			interpreter: function(content) {
+				return "B";
+			}
+		});
+
+		var tokens = lexer.tokenize("aaabbb");
+		expect(tokens).toEqual([
+			{ content: "A", type:"threeAs", position:0 },
+			{ content: "B", type:"threeBs", position:3 }
+		]);
+	});
 });
 
 describe("the lexer standard integer type", function() {

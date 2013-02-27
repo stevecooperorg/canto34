@@ -72,6 +72,7 @@
 					if (match.index == 0) {
 						somethingFoundThisPass = true;
 						var content = match[0];
+						var originalLength = content.length;
 						remaining = remaining.substring(content.length);
 						
 						if (tokenType.interpreter) {
@@ -87,8 +88,8 @@
 						if (!tokenType.ignore) {
 							result.push(token);
 						}
-
-						position += content.length;
+						
+						position += originalLength;
 						continue;
 					}
 				}
