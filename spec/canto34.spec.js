@@ -116,6 +116,16 @@ describe('When lexing tokens', function() {
 		]);
 	});
 
+	it('reports when there is no matching pattern', function() {
+		lexer.addTokenType({
+			name: "lettersOnly",
+			regexp: /[a-z]+/
+		});
+		expect(function() {
+			lexer.tokenize("123"); 
+		}).toThrow("No viable alternative at position 0: '123...'");
+	});
+
 	it('allows the use of custom interpreters', function() {
 		lexer.addTokenType({
 			name: "integer",
@@ -131,3 +141,17 @@ describe('When lexing tokens', function() {
 		]);
 	});
 });
+
+describe("lexer standard integer type", function() {
+	var lexer = new canto34.Lexer();
+	lexer.addTokenType(canto34.StandardTokenTypes.integer());
+	it("should parse integers", function() {
+		var tokens = lexer.tokenize("123");
+		expect(tokens).toEqual([ {content: 123, type:"integer", position:0}]);
+	});
+
+	it("should parse negative integers", function() {
+		var tokens = lexer.tokenize("-123");
+		expect(tokens).toEqual([ {content: -123, type:"integer", position:0}]);
+	});
+})
