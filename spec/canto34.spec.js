@@ -407,5 +407,13 @@ describe("the parser", function() {
 		}).toThrow("Expected bar but found EOF");
 	});
 
+	it("should recognise the end of input as eof", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([ { type:"foo"}]);
+		expect(parser.eof()).toBe(false);
+		parser.match("foo");
+		expect(parser.eof()).toBe(true);
+	});
+
 
 });

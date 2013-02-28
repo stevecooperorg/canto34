@@ -211,7 +211,7 @@
   		};
 
   		canto34.Parser.prototype.la1 = function(tokenType) {
-  			if (this.tokens.length == 0) {
+  			if (this.eof()) {
   				throw new canto34.ParserException("No tokens available");
   			}
 
@@ -220,7 +220,7 @@
 
   		canto34.Parser.prototype.match = function(tokenType) {
 
-			if (this.tokens.length == 0) {
+			if (this.eof()) {
   				throw new canto34.ParserException("Expected " + tokenType + " but found EOF");
   			}
 
@@ -229,6 +229,10 @@
   			}
 
   			return this.tokens.shift();
+  		};
+
+  		canto34.Parser.prototype.eof = function() {
+  			return this.tokens.length == 0;
   		};
 
 })(typeof exports === 'undefined'? this['canto34']={}: exports);
