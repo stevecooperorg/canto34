@@ -339,3 +339,73 @@ describe("the canto jasmine matchers", function() {
 	});
 })
 
+describe("the parser", function() {
+
+	it("should allow initialization from an array", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([]);
+		expect(parser.tokens.length).toBe(0);
+	});
+
+	it("should not allow initialization from undefined", function() {
+		var parser = new canto34.Parser();
+		expect(function() {
+			parser.initialize();
+		}).toThrow("No tokens provided to the parser");
+	});
+
+	it("should not allow initialization from non-arrays", function() {
+		var parser = new canto34.Parser();
+		expect(function() {
+			parser.initialize("hello");
+		}).toThrow("A non-array was provided to the parser instead of a token array");
+	});
+
+	it("should allow lookahead checks without consuming tokens", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([
+			{ content: "token1", type:"foo", position: 0 },
+			{ content: "token2", type:"bar", position: 0 },
+		]);
+		expect(parser.la1("foo")).toBe(true);
+		expect(parser.la1("foo")).toBe(true);
+	});
+
+	it("should allow matching which consumies tokens", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([
+			{ content: "token1", type:"foo", position: 0 },
+			{ content: "token2", type:"bar", position: 0 },
+		]);
+		expect(parser.match("foo")).toEqual({ content: "token1", type:"foo", position: 0 });
+		expect(parser.match("bar")).toEqual({ content: "token2", type:"bar", position: 0 });
+	});
+
+	it("should throw when matching the wrong type", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([
+			{ content: "token1", type:"foo", position: 0 }
+		]);
+		expect(function() {
+			parser.match("bar");
+		}).toThrow("Expected bar but found foo at 0");
+	});
+
+	it("should throw when looking ahead and no tokens are available", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([]);
+		expect(function() {
+			parser.la1("bar");
+		}).toThrow("No tokens available");
+	});
+
+	it("should throw when matching and no tokens are available", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([]);
+		expect(function() {
+			parser.match("bar");
+		}).toThrow("Expected bar but found EOF");
+	});
+
+
+});

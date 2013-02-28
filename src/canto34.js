@@ -203,6 +203,10 @@
   				throw new canto34.ParserException("No tokens provided to the parser");
   			}
 
+  			if (!(tokens instanceof Array)) {
+  				throw new canto34.ParserException("A non-array was provided to the parser instead of a token array");	
+  			}
+
   			this.tokens = tokens;
   		};
 
@@ -215,6 +219,11 @@
   		};
 
   		canto34.Parser.prototype.match = function(tokenType) {
+
+			if (this.tokens.length == 0) {
+  				throw new canto34.ParserException("Expected " + tokenType + " but found EOF");
+  			}
+
   			if (!this.la1(tokenType)) {
   				throw new canto34.ParserException("Expected " + tokenType + " but found " + this.tokens[0].type + " at " + this.tokens[0].position);
   			}
