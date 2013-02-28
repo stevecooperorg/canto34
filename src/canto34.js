@@ -16,42 +16,46 @@
 		this.tokenTypes = [];
 	};
 
-    var PatternDefinitionException = function(message) {
+    canto34.PatternDefinitionException = function(message) {
     	this.message = message;
     }
 
-    var LexerException = function(message) {
+    canto34.LexerException = function(message) {
+    	this.message = message;
+    }
+
+    canto34.ParserException = function(message) {
     	this.message = message;
     }
 
 	canto34.Lexer.prototype.addTokenType = function(tokenType) {
 			
 		if (!tokenType.name) {
-			throw new PatternDefinitionException("Token types must have a 'name' property");
+			throw new canto34.PatternDefinitionException("Token types must have a 'name' property");
 		}
 
 		if (!tokenType.regexp) { 
-			throw new PatternDefinitionException("Token types must have a 'regexp' property");
+			throw new canto34.PatternDefinitionException("Token types must have a 'regexp' property");
 		}
 
 
 		if (!(tokenType.regexp instanceof RegExp)) { 
-			throw new PatternDefinitionException("Token types 'regexp' property must be an instance of RegExp");
+			throw new canto34.PatternDefinitionException("Token types 'regexp' property must be an instance of RegExp");
 		}
 
 		if(tokenType.interpreter && typeof tokenType.interpreter !== "function") {
-			throw new PatternDefinitionException("Token types 'interpreter' property must be a function");
+			throw new canto34.PatternDefinitionException("Token types 'interpreter' property must be a function");
 		}
 		this.tokenTypes.push(tokenType);
 	};
 
 	canto34.Lexer.prototype.tokenize = function(content) {
 		if (content === undefined) {
-			throw new LexerException("No content provided");
+			throw new canto34.LexerException("No content provided");
 		}
 
 		if (this.tokenTypes.length === 0) {
-			throw new LexerException("No token types defined");
+			throw new canto34.LexerException("No token types defined");
 		}
 
 		var result = [];
@@ -96,7 +100,9 @@
 			}
 
 			if (!somethingFoundThisPass) {
-				throw new LexerException("No viable alternative at position " + position + ": '" + remaining.substring(0, 15) + "...'");
+				var userPartOfString = remaining.substring(0, 15);
+				var visibleUserPartOfString = userPartOfString.replace("\r", "\\r").replace("\t", "\\t").replace("\n", "\\n")
+				throw new canto34.LexerException("No viable alternative at position " + position + ": '" + visibleUserPartOfString + "...'");
 			}
 		}
 
@@ -122,5 +128,98 @@
 			regexp: /[ \t]+/
 		};
 	};
+
+	canto34.StandardTokenTypes.whitespaceWithNewlines = function() {
+		return {
+			name: "whitespace",
+			ignore: true,
+			regexp: /[ \t\r\n]+/
+		};
+	};
+
+	canto34.Jasmine = {};
+	canto34.Jasmine.matchers = {
+    		toHaveTokenTypes: function(expected) {
+    			var actualLength = this.actual.length;
+    			var expectedLength = expected.length;
+      			if (actualLength != expectedLength) {
+      				this.message = function() { 
+      					return "Expected " + expectedLength + " tokens but found " + actualLength;      					
+      				}
+      				return false;
+      			}
+
+      			for(var i = 0; i < actualLength; i++) {
+      				var actualType = this.actual[i].type;
+      				var expectedType = expected[i];
+      				if (actualType != expectedType) {
+      					var that = this;
+      					(function() {
+      						var failingIndex = i;
+							that.message = function() {
+								return "Expected token type '" + expectedType + "' but found '" + actualType + "' at index " + failingIndex;	
+							} 
+						})();
+						return false;
+      				}
+      			}
+      			
+      			return true;
+    		},
+    		toHaveTokenContent: function(expected) {
+    			var actualLength = this.actual.length;
+    			var expectedLength = expected.length;
+      			if (actualLength != expectedLength) {
+      				this.message = function() { 
+      					return "Expected " + expectedLength + " tokens but found " + actualLength;      					
+      				}
+      				return false;
+      			}
+
+      			for(var i = 0; i < actualLength; i++) {
+      				var actualContent = this.actual[i].content;
+      				var expectedContent = expected[i];
+      				if (actualContent != expectedContent) {
+      					var that = this;
+      					(function() {
+      						var failingIndex = i;
+							that.message = function() {
+								return "Expected token content '" + expectedContent + "' but found '" + actualContent + "' at index " + failingIndex;	
+							} 
+						})();
+						return false;
+      				}
+      			}
+      			
+      			return true;
+    		}
+  		};
+	
+  		canto34.Parser = function() {
+  		};
+
+  		canto34.Parser.prototype.initialize = function(tokens) {
+  			if (!tokens) {
+  				throw new canto34.ParserException("No tokens provided to the parser");
+  			}
+
+  			this.tokens = tokens;
+  		};
+
+  		canto34.Parser.prototype.la1 = function(tokenType) {
+  			if (this.tokens.length == 0) {
+  				throw new canto34.ParserException("No tokens available");
+  			}
+
+  			return this.tokens[0].type == tokenType;
+  		};
+
+  		canto34.Parser.prototype.match = function(tokenType) {
+  			if (!this.la1(tokenType)) {
+  				throw new canto34.ParserException("Expected " + tokenType + " but found " + this.tokens[0].type + " at " + this.tokens[0].position);
+  			}
+
+  			return this.tokens.shift();
+  		};
 
 })(typeof exports === 'undefined'? this['canto34']={}: exports);

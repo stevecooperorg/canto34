@@ -209,4 +209,133 @@ describe("the lexer standard whitespace type", function() {
 			{content: " \t ", type:"whitespace", position:6},
 			]);
 	});
- });
+
+	it("does not recognise newlines as part of the token", function() {
+    	lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
+		expect(function() {
+			lexer.tokenize("\r");
+		}).toThrow("No viable alternative at position 0: '\\r...'");
+
+		expect(function() {
+			lexer.tokenize("\n");
+		}).toThrow("No viable alternative at position 0: '\\n...'");
+	});
+});
+
+
+
+describe("the lexer standard whitespace and newline type", function() {
+	
+	var lexer;
+
+	beforeEach(function() {
+		lexer = new canto34.Lexer();
+	})
+	
+	it("should default to skipping whitespace tokens", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
+		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
+		var tokens = lexer.tokenize("  \r\n\t  abc \r\n\t  ");
+		expect(tokens).toEqual([ {content: "abc", type:"letters", position:7}]);
+	});
+
+    it("will produce whitespace tokens spanning more than one character", function() {
+    	var nonIgnoredWhitespace = canto34.StandardTokenTypes.whitespaceWithNewlines();
+    	nonIgnoredWhitespace.ignore = false;
+
+		lexer.addTokenType(nonIgnoredWhitespace);
+		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
+		var tokens = lexer.tokenize(" \t abc \t ");
+		expect(tokens).toEqual([ 
+			{content: " \t ", type:"whitespace", position:0},
+			{content: "abc", type:"letters", position:3},
+			{content: " \t ", type:"whitespace", position:6},
+			]);
+	});
+
+	it("should recognise newlines as part of the token", function() {
+    	lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
+		expect(function() {
+			return lexer.tokenize("\r");
+		}).not.toThrow();
+
+		expect(function() {
+			return lexer.tokenize("\n");
+		}).not.toThrow();
+	});
+});
+
+describe("the canto jasmine matchers", function() {
+	beforeEach(function() {
+		this.addMatchers(canto34.Jasmine.matchers);
+	});
+
+	it("should be defined", function() {
+		expect(canto34.Jasmine.matchers).toBeDefined();
+	});
+
+	it("should detect correct token types", function() {
+		expect([
+			{ content: "x", type:"y", position:0},
+			{ content: "a", type:"b", position:1}
+		]).toHaveTokenTypes(["y", "b"]);
+	});
+
+	it("should detect different token types", function() {
+		var expectResult = {
+			actual: [
+				{ content: "x", type:"y", position:0},
+				{ content: "a", type:"b", position:1}
+			]
+		};
+		var result = canto34.Jasmine.matchers.toHaveTokenTypes.call(expectResult, ["y", "WRONG"]);
+		expect(result).toBe(false);	
+		var msg = expectResult.message();
+		expect(msg).toBe("Expected token type 'WRONG' but found 'b' at index 1");
+	});
+
+	it("should detect correct token content", function() {
+		expect([
+			{ content: "x", type:"y", position:0},
+			{ content: "a", type:"b", position:1}
+		]).toHaveTokenContent(["x", "a"]);
+	});
+
+	it("should detect different token content", function() {
+		var expectResult = {
+			actual: [
+				{ content: "x", type:"y", position:0},
+				{ content: "a", type:"b", position:1}
+			]
+		};
+		var result = canto34.Jasmine.matchers.toHaveTokenContent.call(expectResult, ["x", "WRONG"]);
+		expect(result).toBe(false);	
+		var msg = expectResult.message();
+		expect(msg).toBe("Expected token content 'WRONG' but found 'a' at index 1");
+	});
+
+	it("should detect different lengths when checking types", function() {
+		var expectResult = {
+			actual: [
+				{ content: "x", type:"y", position:0},
+			]
+		};
+		var result = canto34.Jasmine.matchers.toHaveTokenTypes.call(expectResult, []);
+		expect(result).toBe(false);	
+		var msg = expectResult.message();
+		expect(msg).toBe("Expected 0 tokens but found 1");
+	});
+
+	it("should detect different lengths when checking content", function() {
+		var expectResult = {
+			actual: [
+				{ content: "x", type:"y", position:0},
+			]
+		};
+		var result = canto34.Jasmine.matchers.toHaveTokenContent.call(expectResult, []);
+		expect(result).toBe(false);	
+		var msg = expectResult.message();
+		expect(msg).toBe("Expected 0 tokens but found 1");
+	});
+})
+
