@@ -222,8 +222,6 @@ describe("the lexer standard whitespace type", function() {
 	});
 });
 
-
-
 describe("the lexer standard whitespace and newline type", function() {
 	
 	var lexer;
@@ -262,6 +260,30 @@ describe("the lexer standard whitespace and newline type", function() {
 		expect(function() {
 			return lexer.tokenize("\n");
 		}).not.toThrow();
+	});
+});
+
+describe("the lexer standard types", function() {
+
+	var lexer;
+	beforeEach(function() {
+		lexer = new canto34.Lexer();
+		this.addMatchers(canto34.Jasmine.matchers);
+	});
+
+	it("should recognise commas", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.comma());
+		expect(lexer.tokenize(",")).toHaveTokenTypes(["comma"]);
+	});
+
+	it("should recognise periods", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.period());
+		expect(lexer.tokenize(".")).toHaveTokenTypes(["period"]);
+	});
+
+	it("should recognise star", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.star());
+		expect(lexer.tokenize("*")).toHaveTokenTypes(["star"]);
 	});
 });
 

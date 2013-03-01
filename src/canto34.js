@@ -128,7 +128,7 @@
 		return {
 			name: "whitespace",
 			ignore: true,
-			regexp: /[ \t]+/
+			regexp: /^[ \t]+/
 		};
 	};
 
@@ -136,9 +136,32 @@
 		return {
 			name: "whitespace",
 			ignore: true,
-			regexp: /[ \t\r\n]+/
+			regexp: /^[ \t\r\n]+/
 		};
 	};
+
+
+	canto34.StandardTokenTypes.comma = function() {
+		return {
+			name: "comma",
+			regexp: /,/
+		};
+	};
+
+	canto34.StandardTokenTypes.period = function() {
+		return {
+			name: "period",
+			regexp: /^\./
+		};
+	};
+
+	canto34.StandardTokenTypes.star = function() {
+		return {
+			name: "star",
+			regexp: /^\*/
+		};
+	};
+	
 
 	canto34.Jasmine = {};
 	canto34.Jasmine.matchers = {
