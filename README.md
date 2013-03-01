@@ -20,9 +20,6 @@ We'll see how to parse this language. First, you write a lexer which
 identifies the different kinds of token -- names, integers, commas, and
 periods;
 
-Here's an example of how to write a lexer to recognise some basic symbol types
--- whitespace, names, and integers;
-
     var lexer = new canto34.Lexer();
 
     // add a token for whitespace
