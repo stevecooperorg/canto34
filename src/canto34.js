@@ -19,14 +19,17 @@
     canto34.PatternDefinitionException = function(message) {
     	this.message = message;
     }
-
+    canto34.PatternDefinitionException.prototype = Error.prototype;
+    
     canto34.LexerException = function(message) {
     	this.message = message;
     }
+    canto34.LexerException.prototype = Error.prototype;
 
     canto34.ParserException = function(message) {
     	this.message = message;
     }
+    canto34.ParserException.prototype = Error.prototype;
 
 	canto34.Lexer.prototype.addTokenType = function(tokenType) {
 			
