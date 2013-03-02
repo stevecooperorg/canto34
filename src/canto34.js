@@ -95,6 +95,8 @@
 
 			for (var i = 0; i < tokenTypeLength; i++) {
 				var tokenType = this.tokenTypes[i];
+
+				consumeResult = undefined;
 				if (tokenType.regexp) {
 					var match = tokenType.regexp.exec(remaining);
 					if (match) {
@@ -115,7 +117,7 @@
 					// should have told us what it consumed;
 					if (consumeResult.success) {
 						if (remaining.indexOf(consumeResult.consumed) !== 0) {
-							throw new canto34.LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character);
+							throw new canto34.LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character + " and instead returned " + consumeResult.consumed);
 						} else {
 							somethingFoundThisPass = true;
 							consumed = consumeResult.consumed;
@@ -128,6 +130,8 @@
 				//handle our new token
 				if (tokenType.interpret) {
 					content = tokenType.interpret(consumed);
+				} else if (consumeResult && !util.lang.isNullOrUndefined(consumeResult.content)) {
+					content = consumeResult.content;
 				} else {
 					content = consumed;
 				}
@@ -217,17 +221,60 @@
 					return fail;
 				}
 
-				var consumed = '"';
+				var content = '';
 				var pos = 1;
-				while(remaining[pos] != '"') {
-					consumed += remaining[pos];
-					pos++;
-				}
-				consumed += '"';
-				return {
+				var ch;
+				var finished = false;
+				do {
+					ch = remaining[pos];
+					pos += 1;
+		
+					switch(ch)
+					{
+						case '"': 
+							finished = true;
+							break;
+						case '\\':
+							var ch2 = remaining[pos];	
+							pos += 1;				
+							switch (ch2) {
+								case '"': return fail;
+								case "t": content += "\t"; break;
+								case "r": content += "\r"; break;
+								case "n": content += "\n"; break;
+								case "u":
+									var unicodeDigits = remaining.substr(pos, 4);
+									if (unicodeDigits.length != 4 || !/\d{4}/.test(unicodeDigits)) {
+										content += "\\u";
+										break;
+									} else {
+										pos += 4;
+										var codePoint = parseInt(unicodeDigits, 10);
+										var codePointString = String.fromCharCode(codePoint);;
+										content += codePointString;
+										break;
+									}
+								default:
+									// something like \q, which doesn't mean anything
+									return fail;
+							}
+							break;
+						default:
+							content += ch;
+							break;
+					}
+				} while(!finished)
+
+
+				consumed = remaining.substring(0, pos);
+
+				var successResult = {
 					success: true,
-					consumed: consumed
+					consumed: consumed,
+					content: content
 				};
+				//console.log(successResult);
+				return successResult;
 			}
 		};
 	};

@@ -188,7 +188,7 @@ describe('When lexing tokens', function() {
 
 		expect(function() {
 			lexer.tokenize("abcdefg");
-		}).toThrow("The consume function for custom failed to return the start of the remaining content at 1.1");
+		}).toThrow("The consume function for custom failed to return the start of the remaining content at 1.1 and instead returned xxx");
 	});
 
 
@@ -254,6 +254,7 @@ describe("the lexer standard JSON string type", function() {
 	beforeEach(function() {
 		this.addMatchers(canto34.Jasmine.matchers);
 	});
+
 	it("should parse an empty string", function() {
 		var tokens = lexer.tokenize('""');
 		expect(tokens).toHaveTokenContent([""]);
@@ -262,6 +263,43 @@ describe("the lexer standard JSON string type", function() {
 	it("should parse a straightforward string", function() {
 		var tokens = lexer.tokenize('"abc"');
 		expect(tokens).toHaveTokenContent(["abc"]);
+	});
+	
+	it("should parse a \\t escape character", function() {
+		var tokens = lexer.tokenize('"a\\tc"');
+		expect(tokens).toHaveTokenContent(["a\tc"]);
+	});
+
+	it("should parse a \\r escape character", function() {
+		var tokens = lexer.tokenize('"a\\rc"');
+		expect(tokens).toHaveTokenContent(["a\rc"]);
+	});
+
+	it("should parse a \\n escape character", function() {
+		var tokens = lexer.tokenize('"a\\nc"');
+		expect(tokens).toHaveTokenContent(["a\nc"]);
+	});
+
+	it("should parse unicode \\u0000 escape characters", function() {
+		var tokens = lexer.tokenize('"\\u0065"'); // unicode 'A'
+		expect(tokens).toHaveTokenContent(["A"]);
+	});
+
+	it("should ignore not-really-unicode like \\u00 foo ", function() {
+		var tokens = lexer.tokenize('"\\u00 foo"');
+		expect(tokens).toHaveTokenContent(['\\u00 foo']);
+	});
+
+	it("should fail to recognise \\ at the end of a string", function() {
+		expect(function() {
+			lexer.tokenize('"\\"');
+		}).toThrow("No viable alternative at 1.1: '\"\\\"...'");
+	});
+
+	it("should not recognise unknown escaped character, like \\q", function() {
+		expect(function() {
+			lexer.tokenize('"\\q"');
+		}).toThrow("No viable alternative at 1.1: '\"\\\q\"...'");
 	});
 
 });
