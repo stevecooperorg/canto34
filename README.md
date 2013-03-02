@@ -45,12 +45,12 @@ And here's how you use it;
 which returns a set of tokens;
 
     [
-        { content: "foo", type: "name",    position: 0 },
-        { content: 1,     type: "integer", position: 4 },
-        { content: ",",   type: "comma",   position: 5 },
-        { content: "bar", type: "name",    position: 7 },
-        { content: 2,     type: "integer", position: 11 },
-        { content: ".",   type: "period",  position: 12 }
+        { content: "foo", type: "name",    line: 1, character: 1 },
+        { content: 1,     type: "integer", line: 1, character: 5 },
+        { content: ",",   type: "comma",   line: 1, character: 6 },
+        { content: "bar", type: "name",    line: 1, character: 8 },
+        { content: 2,     type: "integer", line: 1, character: 12 },
+        { content: ".",   type: "period",  line: 1, character: 13 }
     ]
 
 Now you feed these tokens into a parser. Here's a parser for our language;

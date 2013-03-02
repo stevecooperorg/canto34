@@ -87,9 +87,9 @@ describe('When lexing tokens', function() {
 
 		var tokens = lexer.tokenize("aaabbbaaa");
 		expect(tokens).toEqual([
-			{ content: "aaa", type: "A", position:0 },
-			{ content: "bbb", type: "B", position:3 },
-			{ content: "aaa", type: "A", position:6 },
+			{ content: "aaa", type: "A", character:1, line:1 },
+			{ content: "bbb", type: "B", character:4, line:1 },
+			{ content: "aaa", type: "A", character:7, line:1 },
 		]);
     })
 
@@ -110,9 +110,9 @@ describe('When lexing tokens', function() {
 
 		var tokens = lexer.tokenize("aa bb cc");
 		expect(tokens).toEqual([ 
-			{ content:"aa", type:"word", position:0 },
-			{ content:"bb", type:"word", position:3 },
-			{ content:"cc", type:"word", position:6 }
+			{ content:"aa", type:"word", line:1, character:1 },
+			{ content:"bb", type:"word", line:1, character:4 },
+			{ content:"cc", type:"word", line:1, character:7 }
 		]);
 	});
 
@@ -123,7 +123,7 @@ describe('When lexing tokens', function() {
 		});
 		expect(function() {
 			lexer.tokenize("123"); 
-		}).toThrow("No viable alternative at position 0: '123...'");
+		}).toThrow("No viable alternative at 1.1: '123...'");
 	});
 
 	it('allows the use of custom interpreters', function() {
@@ -137,7 +137,7 @@ describe('When lexing tokens', function() {
 
 		var tokens = lexer.tokenize("123");
 		expect(tokens).toEqual([
-			{ content: 123, type:"integer", position:0 }
+			{ content: 123, type:"integer", line:1, character:1 }
 		]);
 	});
 
@@ -160,8 +160,8 @@ describe('When lexing tokens', function() {
 
 		var tokens = lexer.tokenize("aaabbb");
 		expect(tokens).toEqual([
-			{ content: "A", type:"threeAs", position:0 },
-			{ content: "B", type:"threeBs", position:3 }
+			{ content: "A", type:"threeAs", line:1, character:1 },
+			{ content: "B", type:"threeBs", line:1, character:4 }
 		]);
 	});
 });
@@ -172,12 +172,12 @@ describe("the lexer standard integer type", function() {
 
 	it("should parse integers", function() {
 		var tokens = lexer.tokenize("123");
-		expect(tokens).toEqual([ {content: 123, type:"integer", position:0}]);
+		expect(tokens).toEqual([ {content: 123, type:"integer", line:1, character:1}]);
 	});
 
 	it("should parse negative integers", function() {
 		var tokens = lexer.tokenize("-123");
-		expect(tokens).toEqual([ {content: -123, type:"integer", position:0}]);
+		expect(tokens).toEqual([ {content: -123, type:"integer", line:1, character:1}]);
 	});
 });
 
@@ -193,7 +193,7 @@ describe("the lexer standard whitespace type", function() {
 		lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
 		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
 		var tokens = lexer.tokenize("  \t  abc \t  ");
-		expect(tokens).toEqual([ {content: "abc", type:"letters", position:5}]);
+		expect(tokens).toEqual([ {content: "abc", type:"letters", line:1, character:6}]);
 	});
 
     it("will produce whitespace tokens spanning more than one character", function() {
@@ -204,9 +204,9 @@ describe("the lexer standard whitespace type", function() {
 		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
 		var tokens = lexer.tokenize(" \t abc \t ");
 		expect(tokens).toEqual([ 
-			{content: " \t ", type:"whitespace", position:0},
-			{content: "abc", type:"letters", position:3},
-			{content: " \t ", type:"whitespace", position:6},
+			{content: " \t ", type:"whitespace", line:1, character:1},
+			{content: "abc", type:"letters", line:1, character:4},
+			{content: " \t ", type:"whitespace", line:1, character:7},
 			]);
 	});
 
@@ -214,11 +214,11 @@ describe("the lexer standard whitespace type", function() {
     	lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
 		expect(function() {
 			lexer.tokenize("\r");
-		}).toThrow("No viable alternative at position 0: '\\r...'");
+		}).toThrow("No viable alternative at 1.1: '\\r...'");
 
 		expect(function() {
 			lexer.tokenize("\n");
-		}).toThrow("No viable alternative at position 0: '\\n...'");
+		}).toThrow("No viable alternative at 1.1: '\\n...'");
 	});
 });
 
@@ -234,7 +234,7 @@ describe("the lexer standard whitespace and newline type", function() {
 		lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
 		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
 		var tokens = lexer.tokenize("  \r\n\t  abc \r\n\t  ");
-		expect(tokens).toEqual([ {content: "abc", type:"letters", position:7}]);
+		expect(tokens).toEqual([ {content: "abc", type:"letters", line:2, character:4}]);
 	});
 
     it("will produce whitespace tokens spanning more than one character", function() {
@@ -245,9 +245,9 @@ describe("the lexer standard whitespace and newline type", function() {
 		lexer.addTokenType({ name:"letters", regexp: /^[a-z]+/ });
 		var tokens = lexer.tokenize(" \t abc \t ");
 		expect(tokens).toEqual([ 
-			{content: " \t ", type:"whitespace", position:0},
-			{content: "abc", type:"letters", position:3},
-			{content: " \t ", type:"whitespace", position:6},
+			{content: " \t ", type:"whitespace", line:1, character:1},
+			{content: "abc", type:"letters", line:1, character:4},
+			{content: " \t ", type:"whitespace", line:1, character:7},
 			]);
 	});
 

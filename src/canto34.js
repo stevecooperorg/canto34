@@ -64,7 +64,7 @@
 		var result = [];
 
 		var remaining = content;
-		var position = 0;
+		var tracker = new canto34.LineTracker();
 		var tokenTypeLength = this.tokenTypes.length;
 
 		while(remaining.length > 0) {
@@ -79,8 +79,6 @@
 					if (match.index == 0) {
 						somethingFoundThisPass = true;
 						var consumed = match[0];
-						var originalLength = consumed.length;
-						remaining = remaining.substring(consumed.length);
 						
 						if (tokenType.interpreter) {
 							content = tokenType.interpreter(consumed);
@@ -91,14 +89,17 @@
 						var token = {
 							content: content,
 							type: tokenType.name,
-							position: position
+							line: tracker.line,
+							character: tracker.character
 						};
 
 						if (!tokenType.ignore) {
 							result.push(token);
 						}
 						
-						position += originalLength;
+						remaining = remaining.substring(consumed.length);
+						tracker.consume(consumed)
+						
 						continue;
 					}
 				}
@@ -107,7 +108,7 @@
 			if (!somethingFoundThisPass) {
 				var userPartOfString = remaining.substring(0, 15);
 				var visibleUserPartOfString = userPartOfString.replace("\r", "\\r").replace("\t", "\\t").replace("\n", "\\n")
-				throw new canto34.LexerException("No viable alternative at position " + position + ": '" + visibleUserPartOfString + "...'");
+				throw new canto34.LexerException("No viable alternative at " + tracker.line + "." + tracker.character + ": '" + visibleUserPartOfString + "...'");
 			}
 		}
 
