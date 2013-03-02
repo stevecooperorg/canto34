@@ -1,5 +1,21 @@
 (function(canto34){
 
+    var util = {
+    	lang: {
+    		isNullOrUndefined: function(x) {
+    			if (typeof x === "undefined") {
+    				return true;
+    			}
+
+    			if (x === null) {
+    				return true;
+    			}
+
+    			return false;
+    		}
+    	}
+    }
+
     /**
         A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
 	
@@ -7,7 +23,7 @@
              name: "integer",
              regexp: "\d+",
              ignore: true,
-             interpreter: function(content) {
+             interpret: function(content) {
 				return parseInt(content); 
              }
          }
@@ -37,17 +53,24 @@
 			throw new canto34.PatternDefinitionException("Token types must have a 'name' property");
 		}
 
-		if (!tokenType.regexp) { 
-			throw new canto34.PatternDefinitionException("Token types must have a 'regexp' property");
+		if (tokenType.regexp && tokenType.consume) {
+			throw new canto34.PatternDefinitionException("Token types cannot have both a 'regexp' pattern and 'consume' function.");
 		}
 
+		if (!tokenType.regexp && !tokenType.consume) { 
+			throw new canto34.PatternDefinitionException("Token types must have a 'regexp' property or a 'consume' function");
+		}
 
-		if (!(tokenType.regexp instanceof RegExp)) { 
+		if (tokenType.regexp && !(tokenType.regexp instanceof RegExp)) { 
 			throw new canto34.PatternDefinitionException("Token types 'regexp' property must be an instance of RegExp");
 		}
 
-		if(tokenType.interpreter && typeof tokenType.interpreter !== "function") {
-			throw new canto34.PatternDefinitionException("Token types 'interpreter' property must be a function");
+		if(tokenType.consume && typeof tokenType.consume !== "function") {
+			throw new canto34.PatternDefinitionException("Token types 'consume' property must be a function");
+		}
+
+		if(tokenType.interpret && typeof tokenType.interpret !== "function") {
+			throw new canto34.PatternDefinitionException("Token types 'interpret' property must be a function");
 		}
 		this.tokenTypes.push(tokenType);
 	};
@@ -62,7 +85,7 @@
 		}
 
 		var result = [];
-
+		var consumed;
 		var remaining = content;
 		var tracker = new canto34.LineTracker();
 		var tokenTypeLength = this.tokenTypes.length;
@@ -72,37 +95,57 @@
 
 			for (var i = 0; i < tokenTypeLength; i++) {
 				var tokenType = this.tokenTypes[i];
-				var match = tokenType.regexp.exec(remaining);
-				if (match) {
-					// we found a token! great. What did it say? We only
-					// want to match at the start of the string
-					if (match.index == 0) {
-						somethingFoundThisPass = true;
-						var consumed = match[0];
-						
-						if (tokenType.interpreter) {
-							content = tokenType.interpreter(consumed);
+				if (tokenType.regexp) {
+					var match = tokenType.regexp.exec(remaining);
+					if (match) {
+						// we found a token! great. What did it say? We only
+						// want to match at the start of the string
+						if (match.index === 0) {
+							somethingFoundThisPass = true;
+							consumed = match[0];
 						} else {
-							content = consumed;
+							continue;
 						}
-
-						var token = {
-							content: content,
-							type: tokenType.name,
-							line: tracker.line,
-							character: tracker.character
-						};
-
-						if (!tokenType.ignore) {
-							result.push(token);
-						}
-						
-						remaining = remaining.substring(consumed.length);
-						tracker.consume(consumed)
-						
+					} else {
 						continue;
 					}
+				} else {
+					// must have a consume function;
+					var consumeResult = tokenType.consume(remaining);
+					// should have told us what it consumed;
+					if (consumeResult.success) {
+						if (remaining.indexOf(consumeResult.consumed) !== 0) {
+							throw new canto34.LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character);
+						} else {
+							somethingFoundThisPass = true;
+							consumed = consumeResult.consumed;
+						}
+					} else {
+						continue;
+					}		
 				}
+
+				//handle our new token
+				if (tokenType.interpret) {
+					content = tokenType.interpret(consumed);
+				} else {
+					content = consumed;
+				}
+
+				var token = {
+					content: content,
+					type: tokenType.name,
+					line: tracker.line,
+					character: tracker.character
+				};
+
+				if (!tokenType.ignore) {
+					result.push(token);
+				}
+				
+				remaining = remaining.substring(consumed.length);
+				tracker.consume(consumed)
+
 			}
 
 			if (!somethingFoundThisPass) {
@@ -121,7 +164,7 @@
 		return {
 			name: "integer",
 			regexp: /^-?\d+/,
-			interpreter: function(content) {
+			interpret: function(content) {
 				return parseInt(content);
 			}
 		};
@@ -162,6 +205,30 @@
 		return {
 			name: "star",
 			regexp: /^\*/
+		};
+	};
+
+	canto34.StandardTokenTypes.JsonString = function() {
+		return {
+			name: "string",
+			consume: function(remaining) {
+				var fail = { success: false };
+				if (remaining.indexOf('"') !== 0) {
+					return fail;
+				}
+
+				var consumed = '"';
+				var pos = 1;
+				while(remaining[pos] != '"') {
+					consumed += remaining[pos];
+					pos++;
+				}
+				consumed += '"';
+				return {
+					success: true,
+					consumed: consumed
+				};
+			}
 		};
 	};
 	

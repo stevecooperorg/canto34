@@ -23,9 +23,17 @@ describe('When adding token types to the lexer,', function() {
 		
 	it('requires token types to have regexps', function() {
 		expect(function() {
-			delete tokenType.regexp
+			delete tokenType.regexp;
 			lexer.addTokenType(tokenType); 
-		}).toThrow("Token types must have a 'regexp' property");
+		}).toThrow("Token types must have a 'regexp' property or a 'consume' function");
+	});
+
+	it('does not require a regexp if a consume function is available', function() {
+		expect(function() {
+			delete tokenType.regexp;
+			tokenType.consume = function() {};
+			lexer.addTokenType(tokenType); 
+		}).not.toThrow();
 	});
 
     it('requires the regexp property to be a regexp', function() {
@@ -35,20 +43,42 @@ describe('When adding token types to the lexer,', function() {
 		}).toThrow("Token types 'regexp' property must be an instance of RegExp");
 	});
 
-	it('allows an interpreter property to be a function', function() {
-		
+	it('allows the consume property to be a function', function() {
 		expect(function() {
-			tokenType.interpreter = function() { return 0; };
+			delete tokenType.regexp;
+			tokenType.consume = function() { };
 			lexer.addTokenType(tokenType);
 		}).not.toThrow();
 	});
 
-	it('requires the interpreter property to be a function', function() {
+	it('does not allow both regexp and consume functions', function() {
+		expect(function() {
+			tokenType.consume = function() { };
+			lexer.addTokenType(tokenType);
+		}).toThrow("Token types cannot have both a 'regexp' pattern and 'consume' function.");
+	});
+
+    it('requires the consume property to be a function', function() {
+		expect(function() {
+			delete tokenType.regexp;
+			tokenType.consume = "not a function";
+			lexer.addTokenType(tokenType); 
+		}).toThrow("Token types 'consume' property must be a function");
+	});
+
+	it('allows an interpret property to be a function', function() {
+		expect(function() {
+			tokenType.interpret = function() { return 0; };
+			lexer.addTokenType(tokenType);
+		}).not.toThrow();
+	});
+
+	it('requires the interpret property to be a function', function() {
 
 		expect(function() {
-			tokenType.interpreter = "not a function";
+			tokenType.interpret = "not a function";
 			lexer.addTokenType(tokenType);
-		}).toThrow("Token types 'interpreter' property must be a function");
+		}).toThrow("Token types 'interpret' property must be a function");
 	});
 
 });
@@ -126,11 +156,47 @@ describe('When lexing tokens', function() {
 		}).toThrow("No viable alternative at 1.1: '123...'");
 	});
 
+	it('allows the use of custom consumers', function() {
+		lexer.addTokenType({
+			name: "custom",
+			consume: function anyThreeCharacters(remaining) {
+				return {
+					success: true,
+					consumed: remaining.substring(0,3)
+				};
+			}
+		});
+
+		var tokens = lexer.tokenize("abcdefg");
+		expect(tokens).toEqual([
+			{ content: "abc", type:"custom", line:1, character:1 },
+			{ content: "def", type:"custom", line:1, character:4 },
+			{ content: "g", type:"custom", line:1, character:7 }
+		]);
+	});
+
+	it('protects against badly-consuming consume functions', function() {
+		lexer.addTokenType({
+			name: "custom",
+			consume: function broken(remaining) {
+				return {
+					success: true,
+					consumed: "xxx" // not the start of the string
+				};
+			}
+		});
+
+		expect(function() {
+			lexer.tokenize("abcdefg");
+		}).toThrow("The consume function for custom failed to return the start of the remaining content at 1.1");
+	});
+
+
 	it('allows the use of custom interpreters', function() {
 		lexer.addTokenType({
 			name: "integer",
 			regexp: /\d+/,
-			interpreter: function(content) {
+			interpret: function(content) {
 				return parseInt(content);
 			}
 		});
@@ -145,7 +211,7 @@ describe('When lexing tokens', function() {
 		lexer.addTokenType({
 			name: "threeAs",
 			regexp: /aaa/,
-			interpreter: function(content) {
+			interpret: function(content) {
 				return "A";
 			}
 		});
@@ -153,7 +219,7 @@ describe('When lexing tokens', function() {
 		lexer.addTokenType({
 			name: "threeBs",
 			regexp: /bbb/,
-			interpreter: function(content) {
+			interpret: function(content) {
 				return "B";
 			}
 		});
@@ -179,6 +245,25 @@ describe("the lexer standard integer type", function() {
 		var tokens = lexer.tokenize("-123");
 		expect(tokens).toEqual([ {content: -123, type:"integer", line:1, character:1}]);
 	});
+});
+
+describe("the lexer standard JSON string type", function() {
+	var lexer = new canto34.Lexer();
+	lexer.addTokenType(canto34.StandardTokenTypes.JsonString());
+
+	beforeEach(function() {
+		this.addMatchers(canto34.Jasmine.matchers);
+	});
+	it("should parse an empty string", function() {
+		var tokens = lexer.tokenize('""');
+		expect(tokens).toHaveTokenContent([""]);
+	});
+
+	it("should parse a straightforward string", function() {
+		var tokens = lexer.tokenize('"abc"');
+		expect(tokens).toHaveTokenContent(["abc"]);
+	});
+
 });
 
 describe("the lexer standard whitespace type", function() {
