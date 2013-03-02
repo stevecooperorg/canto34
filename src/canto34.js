@@ -78,12 +78,14 @@
 					// want to match at the start of the string
 					if (match.index == 0) {
 						somethingFoundThisPass = true;
-						var content = match[0];
-						var originalLength = content.length;
-						remaining = remaining.substring(content.length);
+						var consumed = match[0];
+						var originalLength = consumed.length;
+						remaining = remaining.substring(consumed.length);
 						
 						if (tokenType.interpreter) {
-							content = tokenType.interpreter(content);
+							content = tokenType.interpreter(consumed);
+						} else {
+							content = consumed;
 						}
 
 						var token = {
@@ -259,6 +261,32 @@
 
   		canto34.Parser.prototype.eof = function() {
   			return this.tokens.length == 0;
+  		};
+
+  		canto34.LineTracker = function() {
+  			this.line = 1;
+  			this.character = 1;
+  			this.justSeenSlashR = false;
+  		};
+
+  		canto34.LineTracker.prototype.consume = function(content) {
+  			
+  			for(var i = 0, len=content.length; i < len; i++) {
+  				if (content[i] == "\r") {
+  					this.line += 1;
+  					this.character = 1;
+  					this.justSeenSlashR = true;
+  				} else if (content[i] == "\n") {
+  					if (!this.justSeenSlashR) {
+  						this.line += 1;
+  					}
+  					this.character = 1;
+  					this.justSeenSlashR = false;
+  				} else {
+  					this.character += 1;
+  					this.justSeenSlashR = false;
+  				}
+  			}
   		};
 
 })(typeof exports === 'undefined'? this['canto34']={}: exports);

@@ -439,3 +439,63 @@ describe("the parser", function() {
 
 
 });
+
+describe("canto34.LineTracker", function() {
+
+	var tracker;
+	beforeEach(function() {
+		tracker = new canto34.LineTracker();
+		this.addMatchers({
+			toBeAt: function(line, character) {
+				var actualLine = this.actual.line;
+				var actualCharacter = this.actual.character;
+				if (actualLine != line) {
+					this.message = function () { return "Expected line to be " + line + " but it was " + actualLine ; };
+					return false;
+				}
+				if (actualCharacter != character) {
+					this.message = function () { return "Expected character to be " + character + " but it was " + actualCharacter ; };
+					return false;
+				}
+				return true;
+			}
+		})
+	});
+
+	it("should initialize to 1,1", function() {
+		expect(tracker).toBeAt(1,1);
+	});
+
+	it("should track characters in the first line", function() {
+		tracker.consume("1234567890");
+		expect(tracker).toBeAt(1,11);
+	});
+
+	it("should track \\r", function() {
+		tracker.consume("foo\rbar");
+		expect(tracker).toBeAt(2,4);
+	});
+
+	it("should track \\n", function() {
+		tracker.consume("foo\nbar");
+		expect(tracker).toBeAt(2,4);
+	});
+
+	it("should track \\r\\n", function() {
+		tracker.consume("foo\r\nbar");
+		expect(tracker).toBeAt(2,4);
+	});
+
+	it("should track \\r, \\n, and both together in complex situations", function() {
+		tracker.consume("\r");
+		expect(tracker).toBeAt(2,1);
+
+		tracker.consume("\n");
+		expect(tracker).toBeAt(2,1); // don't advance the line because of previous \r
+
+		tracker.consume("foo");
+		expect(tracker).toBeAt(2,4);
+
+	});
+
+})
