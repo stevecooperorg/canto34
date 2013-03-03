@@ -16,8 +16,8 @@ lexer.addTokenType(types.closeParen());
 var parser = new canto34.Parser();
 
 describe("The JSON lexer", function() {
-	it("should parse all the token types", function() {
-		var input = "( ) { } [ ] 123 -123 1.234 -1.234";
-		var tokens = lexer.tokenize(input);
-	});
+	// it("should parse all the token types", function() {
+	// 	var input = "( ) { } [ ] 123 -123 1.234 -1.234";
+	// 	var tokens = lexer.tokenize(input);
+	// });
 });
