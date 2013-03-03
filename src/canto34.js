@@ -164,6 +164,17 @@
 
 	canto34.StandardTokenTypes = {};
 
+	function escapeRegExp(string){
+	  return string.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
+	};
+
+	canto34.StandardTokenTypes.constant = function(literal, name) {
+		return {
+			name: name,
+			regexp: new RegExp("^" + escapeRegExp(literal))
+		};
+	}
+
 	canto34.StandardTokenTypes.integer = function() {
 		return {
 			name: "integer",
@@ -190,26 +201,51 @@
 		};
 	};
 
+	canto34.StandardTokenTypes.real = function() {
+		return {
+			name: "real number",
+			regexp: /^X/
+		}
+	}
 
 	canto34.StandardTokenTypes.comma = function() {
-		return {
-			name: "comma",
-			regexp: /,/
-		};
+		return canto34.StandardTokenTypes.constant(",", "comma");
 	};
 
 	canto34.StandardTokenTypes.period = function() {
-		return {
-			name: "period",
-			regexp: /^\./
-		};
+		return canto34.StandardTokenTypes.constant(".", "period");
 	};
 
 	canto34.StandardTokenTypes.star = function() {
-		return {
-			name: "star",
-			regexp: /^\*/
-		};
+		return canto34.StandardTokenTypes.constant("*", "star");
+	};
+
+	canto34.StandardTokenTypes.colon = function() {
+		return canto34.StandardTokenTypes.constant(":", "colon");
+	};
+
+	canto34.StandardTokenTypes.openParen = function() {
+		return canto34.StandardTokenTypes.constant("(", "open paren");
+	};
+
+	canto34.StandardTokenTypes.closeParen = function() {
+		return canto34.StandardTokenTypes.constant(")", "close paren");
+	};
+
+	canto34.StandardTokenTypes.openBracket = function() {
+		return canto34.StandardTokenTypes.constant("{", "open bracket");
+	};
+
+	canto34.StandardTokenTypes.closeBracket = function() {
+		return canto34.StandardTokenTypes.constant("}", "close bracket");
+	};
+
+	canto34.StandardTokenTypes.openSquareBracket = function() {
+		return canto34.StandardTokenTypes.constant("[", "open square bracket");
+	};
+
+	canto34.StandardTokenTypes.closeSquareBracket = function() {
+		return canto34.StandardTokenTypes.constant("]", "close square bracket");
 	};
 
 	canto34.StandardTokenTypes.JsonString = function() {

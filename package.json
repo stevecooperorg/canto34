@@ -1,12 +1,12 @@
 {
-  "name": "Canto34",
-  "version": "0.0.0",
-  "description": "A library for helping you build recursive descent parsers",
+  "name": "canto34.js",
+  "version": "0.0.1",
+  "description": "A library for helping you build recursive descent parsers and regex-based lexers",
   "main": "src\\canto34.js",
   "directories": {
     "doc": "docs",
     "example": "examples",
-    "test": "tests"
+    "test": "spec"
   },
   "dependencies": {
     "jasmine-node": "~1.3.0"
@@ -17,10 +17,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevecooperorg/Canto34.git"
+    "url": "https://github.com/stevecooperorg/canto34.js.git"
   },
   "keywords": [
-    "parsing"
+    "parsing",
+    "lexing",
+    "lexical analysis",
+    "parser",
+    "lexer"
   ],
   "author": "Steve Cooper",
   "license": "BSD",

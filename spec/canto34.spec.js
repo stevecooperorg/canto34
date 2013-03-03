@@ -404,10 +404,38 @@ describe("the lexer standard types", function() {
 		expect(lexer.tokenize(".")).toHaveTokenTypes(["period"]);
 	});
 
+	it("should recognise colons", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.colon());
+		expect(lexer.tokenize(":")).toHaveTokenTypes(["colon"]);
+	});
+
 	it("should recognise star", function() {
 		lexer.addTokenType(canto34.StandardTokenTypes.star());
 		expect(lexer.tokenize("*")).toHaveTokenTypes(["star"]);
 	});
+	
+	it("should recognise real numbers", function() {
+
+	});
+
+	it("should recognise several brackets and parens", function() {
+		lexer.addTokenType(canto34.StandardTokenTypes.openBracket());
+		lexer.addTokenType(canto34.StandardTokenTypes.closeBracket());
+		lexer.addTokenType(canto34.StandardTokenTypes.openSquareBracket());
+		lexer.addTokenType(canto34.StandardTokenTypes.closeSquareBracket());
+		lexer.addTokenType(canto34.StandardTokenTypes.openParen());
+		lexer.addTokenType(canto34.StandardTokenTypes.closeParen());
+		expect(lexer
+			.tokenize("{}[]()"))
+			.toHaveTokenTypes([
+				"open bracket",
+				"close bracket",
+				"open square bracket",
+				"close square bracket",
+				"open paren",
+				"close paren"]);
+	});
+
 });
 
 describe("the canto jasmine matchers", function() {
