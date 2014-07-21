@@ -1,4 +1,5 @@
-Canto 34 is a library for building recursive-descent parsers.
+Canto 34 is a library for building recursive-descent parsers. It can be used
+both on node.js, and in the browser as an AMD module.
 
 When it comes to writing a parser, you get two main choices. Write your own,
 or use a parser generator like PEGJS or ANTLR.

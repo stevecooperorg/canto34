@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Canto34 Example</title>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.14/require.js"></script>
+</head>
+<body>
+
+<h1>Canto34 Example</h1>
+
+<p>We start with this input:</p>
+<code><pre data-bind="text: input"></pre></code>
+<p>And then we turn it into tokens;</p>
+<code><pre data-bind="text: tokens"></pre></code>
+<p>Which returns this result;</p>
+<code><pre data-bind="text: result"></pre></code>
+
+<script>
+        require(['./src/canto34', './spec/example'], function(canto34, example) {
+        	"use strict";
+
+            var lexer = example.lexer;
+        	var parser= example.parser;
+
+        	var input = "foo 1, bar 2.";
+        	var tokens = lexer.tokenize(input);
+        	var tokenString = JSON.stringify(tokens, null, 4);
+
+            parser.initialize(tokens);
+            parser.listOfNameValuePairs();
+    
+            var vm = {
+            	input: input,
+            	tokens: tokenString,
+            	result: JSON.stringify(parser.result, null, 4)
+            };
+
+            $(function() {
+                ko.applyBindings(vm);
+            });
+        });
+	</script>
+</body>
+</html>
