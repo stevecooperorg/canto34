@@ -421,6 +421,12 @@
 	  			return this.tokens.length == 0;
 	  		};
 
+			canto34.Parser.prototype.expectEof = function() {
+				if (!this.eof()) {
+	  				throw new canto34.ParserException("Expected EOF but found " + this.tokens[0].type + " at " + this.tokens[0].position);
+				}
+			};
+
 	  		canto34.LineTracker = function() {
 	  			this.line = 1;
 	  			this.character = 1;

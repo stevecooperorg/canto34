@@ -588,6 +588,17 @@ describe("the parser", function() {
 		expect(parser.eof()).toBe(true);
 	});
 
+   it("should throw correctly if there are tokens and expectEof() called", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([ { type:"foo"}]);
+		expect(parser.expectEof.bind(parser)).toThrow();
+   });
+
+   it("should not throw if there are no tokens and expectEof() called", function() {
+		var parser = new canto34.Parser();
+		parser.initialize([]);
+		expect(parser.expectEof.bind(parser)).not.toThrow();
+   });
 
 });
 
