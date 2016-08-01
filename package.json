@@ -2,7 +2,7 @@
   "name": "canto34",
   "version": "0.0.3",
   "description": "A library for helping you build recursive descent parsers and regex-based lexers",
-  "main": "src\\canto34.js",
+  "main": "src/canto34.js",
   "directories": {
     "doc": "docs",
     "example": "examples",
