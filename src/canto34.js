@@ -411,7 +411,7 @@
 	  			}
 
 	  			if (!this.la1(tokenType)) {
-	  				throw new canto34.ParserException("Expected " + tokenType + " but found " + this.tokens[0].type + " at " + this.tokens[0].position);
+	  				throw new canto34.ParserException("Expected " + tokenType + " but found " + this.tokens[0].type + " at l" + this.tokens[0].line + "." + this.tokens[0].character);
 	  			}
 
 	  			return this.tokens.shift();
@@ -423,7 +423,7 @@
 
 			canto34.Parser.prototype.expectEof = function() {
 				if (!this.eof()) {
-	  				throw new canto34.ParserException("Expected EOF but found " + this.tokens[0].type + " at " + this.tokens[0].position);
+	  				throw new canto34.ParserException("Expected EOF but found " + this.tokens[0].type + " at l" + this.tokens[0].line + "." + this.tokens[0].character);
 				}
 			};
 

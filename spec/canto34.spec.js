@@ -449,16 +449,16 @@ describe("the canto jasmine matchers", function() {
 
 	it("should detect correct token types", function() {
 		expect([
-			{ content: "x", type:"y", position:0},
-			{ content: "a", type:"b", position:1}
+			{ content: "x", type:"y", line:1, character:1},
+			{ content: "a", type:"b", line:1, character:2}
 		]).toHaveTokenTypes(["y", "b"]);
 	});
 
 	it("should detect different token types", function() {
 		var expectResult = {
 			actual: [
-				{ content: "x", type:"y", position:0},
-				{ content: "a", type:"b", position:1}
+				{ content: "x", type:"y", line:1, character:1},
+				{ content: "a", type:"b", line:1, character:2}
 			]
 		};
 		var result = canto34.Jasmine.matchers.toHaveTokenTypes.call(expectResult, ["y", "WRONG"]);
@@ -557,11 +557,11 @@ describe("the parser", function() {
 	it("should throw when matching the wrong type", function() {
 		var parser = new canto34.Parser();
 		parser.initialize([
-			{ content: "token1", type:"foo", position: 0 }
+			{ content: "token1", type:"foo", line: 1, character:1 }
 		]);
 		expect(function() {
 			parser.match("bar");
-		}).toThrow("Expected bar but found foo at 0");
+		}).toThrow("Expected bar but found foo at l1.1");
 	});
 
 	it("should throw when looking ahead and no tokens are available", function() {
