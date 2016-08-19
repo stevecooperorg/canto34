@@ -20,22 +20,35 @@
 
 	    			return false;
 	    		}
-	    	}
+	    	},
+			extend: function() {
+				// conparable to jquery's extend
+				for(var i=1; i<arguments.length; i++)
+					for(var key in arguments[i])
+						if(arguments[i].hasOwnProperty(key))
+							arguments[0][key] = arguments[i][key];
+				return arguments[0];
+			}
 	    }
 
 	    /**
-	        A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like 
-		
-		    { 
+	        A *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like
+
+		    {
 	             name: "integer",
 	             regexp: "\d+",
 	             ignore: true,
+				 role: ["keyword"],
 	             interpret: function(content) {
-					return parseInt(content); 
+					return parseInt(content);
 	             }
 	         }
 	    **/
-		canto34.Lexer = function() {
+		canto34.Lexer = function(options) {
+			var defaults = {
+				languageName: "unnamedlanguage"
+			};
+			this.options = util.extend({}, defaults, options);
 			this.tokenTypes = [];
 		};
 
@@ -43,7 +56,7 @@
 	    	this.message = message;
 	    }
 	    canto34.PatternDefinitionException.prototype = Error.prototype;
-	    
+
 	    canto34.LexerException = function(message) {
 	    	this.message = message;
 	    }
@@ -55,20 +68,23 @@
 	    canto34.ParserException.prototype = Error.prototype;
 
 		canto34.Lexer.prototype.addTokenType = function(tokenType) {
-				
+
 			if (!tokenType.name) {
 				throw new canto34.PatternDefinitionException("Token types must have a 'name' property");
 			}
 
-			if (tokenType.regexp && tokenType.consume) {
-				throw new canto34.PatternDefinitionException("Token types cannot have both a 'regexp' pattern and 'consume' function.");
-			}
+			// FOR CONSIDERATION: for some tokens, the full 'consume' is required for correct interpretation
+			// (eg, JSON strings with escaped character) but a regex will do for syntax highlighting. In this
+			// situation, both are allowed but consume is used for lexing and regexp is used for language definition.
+			// if (tokenType.regexp && tokenType.consume) {
+			// 	throw new canto34.PatternDefinitionException("Token types cannot have both a 'regexp' pattern and 'consume' function.");
+			// }
 
-			if (!tokenType.regexp && !tokenType.consume) { 
+			if (!tokenType.regexp && !tokenType.consume) {
 				throw new canto34.PatternDefinitionException("Token types must have a 'regexp' property or a 'consume' function");
 			}
 
-			if (tokenType.regexp && !(tokenType.regexp instanceof RegExp)) { 
+			if (tokenType.regexp && !(tokenType.regexp instanceof RegExp)) {
 				throw new canto34.PatternDefinitionException("Token types 'regexp' property must be an instance of RegExp");
 			}
 
@@ -104,7 +120,21 @@
 					var tokenType = this.tokenTypes[i];
 
 					consumeResult = undefined;
-					if (tokenType.regexp) {
+					if (tokenType.consume) {
+						// must have a consume function;
+						var consumeResult = tokenType.consume(remaining);
+						// should have told us what it consumed;
+						if (consumeResult.success) {
+							if (remaining.indexOf(consumeResult.consumed) !== 0) {
+								throw new canto34.LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character + " and instead returned " + consumeResult.consumed);
+							} else {
+								somethingFoundThisPass = true;
+								consumed = consumeResult.consumed;
+							}
+						} else {
+							continue;
+						}
+					} else {
 						var match = tokenType.regexp.exec(remaining);
 						if (match) {
 							// we found a token! great. What did it say? We only
@@ -118,20 +148,6 @@
 						} else {
 							continue;
 						}
-					} else {
-						// must have a consume function;
-						var consumeResult = tokenType.consume(remaining);
-						// should have told us what it consumed;
-						if (consumeResult.success) {
-							if (remaining.indexOf(consumeResult.consumed) !== 0) {
-								throw new canto34.LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character + " and instead returned " + consumeResult.consumed);
-							} else {
-								somethingFoundThisPass = true;
-								consumed = consumeResult.consumed;
-							}
-						} else {
-							continue;
-						}		
 					}
 
 					//handle our new token
@@ -153,7 +169,7 @@
 					if (!tokenType.ignore) {
 						result.push(token);
 					}
-					
+
 					remaining = remaining.substring(consumed.length);
 					tracker.consume(consumed)
 
@@ -175,10 +191,12 @@
 		  return string.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
 		};
 
-		canto34.StandardTokenTypes.constant = function(literal, name) {
+		canto34.StandardTokenTypes.constant = function(literal, name, role) {
+			var role = role || ["keyword"];
 			return {
 				name: name,
-				regexp: new RegExp("^" + escapeRegExp(literal))
+				regexp: new RegExp("^" + escapeRegExp(literal)),
+				role: role
 			};
 		}
 
@@ -186,6 +204,7 @@
 			return {
 				name: "integer",
 				regexp: /^-?\d+/,
+				role: ["constant", "numeric"],
 				interpret: function(content) {
 					return parseInt(content);
 				}
@@ -211,53 +230,55 @@
 		canto34.StandardTokenTypes.real = function() {
 			return {
 				name: "real number",
-				regexp: /^X/
+				regexp: /^X/,
+				role: ["constant", "numeric"]
 			}
 		}
 
 		canto34.StandardTokenTypes.comma = function() {
-			return canto34.StandardTokenTypes.constant(",", "comma");
+			return canto34.StandardTokenTypes.constant(",", "comma", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.period = function() {
-			return canto34.StandardTokenTypes.constant(".", "period");
+			return canto34.StandardTokenTypes.constant(".", "period", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.star = function() {
-			return canto34.StandardTokenTypes.constant("*", "star");
+			return canto34.StandardTokenTypes.constant("*", "star", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.colon = function() {
-			return canto34.StandardTokenTypes.constant(":", "colon");
+			return canto34.StandardTokenTypes.constant(":", "colon", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.openParen = function() {
-			return canto34.StandardTokenTypes.constant("(", "open paren");
+			return canto34.StandardTokenTypes.constant("(", "open paren", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.closeParen = function() {
-			return canto34.StandardTokenTypes.constant(")", "close paren");
+			return canto34.StandardTokenTypes.constant(")", "close paren", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.openBracket = function() {
-			return canto34.StandardTokenTypes.constant("{", "open bracket");
+			return canto34.StandardTokenTypes.constant("{", "open bracket", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.closeBracket = function() {
-			return canto34.StandardTokenTypes.constant("}", "close bracket");
+			return canto34.StandardTokenTypes.constant("}", "close bracket", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.openSquareBracket = function() {
-			return canto34.StandardTokenTypes.constant("[", "open square bracket");
+			return canto34.StandardTokenTypes.constant("[", "open square bracket", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.closeSquareBracket = function() {
-			return canto34.StandardTokenTypes.constant("]", "close square bracket");
+			return canto34.StandardTokenTypes.constant("]", "close square bracket", ["punctuation"]);
 		};
 
 		canto34.StandardTokenTypes.JsonString = function() {
 			return {
 				name: "string",
+				regexp: /"(?:[^"\\]|\\.)*"/,
 				consume: function(remaining) {
 					var fail = { success: false };
 					if (remaining.indexOf('"') !== 0) {
@@ -271,15 +292,15 @@
 					do {
 						ch = remaining[pos];
 						pos += 1;
-			
+
 						switch(ch)
 						{
-							case '"': 
+							case '"':
 								finished = true;
 								break;
 							case '\\':
-								var ch2 = remaining[pos];	
-								pos += 1;				
+								var ch2 = remaining[pos];
+								pos += 1;
 								switch (ch2) {
 									case '"': return fail;
 									case "t": content += "\t"; break;
@@ -321,7 +342,65 @@
 				}
 			};
 		};
-		
+
+		canto34.tmLanguage = {};
+
+	    canto34.tmLanguage.generateTmLanguageDefinition = function(lexer) {
+			// https://github.com/TooTallNate/plist.js
+			var build = require('plist').build;
+			var languageDef = {
+				name: lexer.options.languageName,
+				patterns: []
+			};
+
+			lexer.tokenTypes.forEach(tt => {
+
+				// convert the regex back to a string; clean off leading and trailing slashes,
+				// and leading ^ characters, which are meaningless.
+				if (!tt.regexp) {
+					throw "no regex for " + tt.name;
+				}
+				var regexPattern = tt.regexp.toString();
+				regexPattern = regexPattern.substr(1, regexPattern.length - 2);
+				if (regexPattern.indexOf("^") == 0) {
+					regexPattern = regexPattern.substr(1);
+				}
+
+				// the name value represents the tmLanguage 'role', such as
+				// 'keyword.control.mylanguage' for 'a keyword in my language'.
+				// This is used in the colour schemes of text editors to give
+				// tokens appropriate colours. Token types can supply these roles
+
+				var nameParts;
+				if (typeof(tt.role) === "String") {
+					nameParts = [ tt.role ];
+				} else {
+					nameParts = tt.role || [];
+				}
+
+				nameParts.push(tt.name);
+
+				if (lexer.options.languageName) {
+					nameParts.push(lexer.options.languageName);
+				}
+
+				var noDups = [];
+				for(var i = 0; i < nameParts.length; i++) {
+					if (noDups.indexOf(nameParts[i]) === -1) {
+						noDups.push(nameParts[i]);
+					}
+				}
+
+				languageDef.patterns.push({
+					match: regexPattern,
+					name:  noDups.join(".")
+				});
+			});
+
+			var result = build(languageDef);
+
+			return result;
+		};
 
 		canto34.Jasmine = {};
 		canto34.Jasmine.matchers = {
@@ -329,8 +408,8 @@
 	    			var actualLength = this.actual.length;
 	    			var expectedLength = expected.length;
 	      			if (actualLength != expectedLength) {
-	      				this.message = function() { 
-	      					return "Expected " + expectedLength + " tokens but found " + actualLength;      					
+	      				this.message = function() {
+	      					return "Expected " + expectedLength + " tokens but found " + actualLength;
 	      				}
 	      				return false;
 	      			}
@@ -343,21 +422,21 @@
 	      					(function() {
 	      						var failingIndex = i;
 								that.message = function() {
-									return "Expected token type '" + expectedType + "' but found '" + actualType + "' at index " + failingIndex;	
-								} 
+									return "Expected token type '" + expectedType + "' but found '" + actualType + "' at index " + failingIndex;
+								}
 							})();
 							return false;
 	      				}
 	      			}
-	      			
+
 	      			return true;
 	    		},
 	    		toHaveTokenContent: function(expected) {
 	    			var actualLength = this.actual.length;
 	    			var expectedLength = expected.length;
 	      			if (actualLength != expectedLength) {
-	      				this.message = function() { 
-	      					return "Expected " + expectedLength + " tokens but found " + actualLength;      					
+	      				this.message = function() {
+	      					return "Expected " + expectedLength + " tokens but found " + actualLength;
 	      				}
 	      				return false;
 	      			}
@@ -370,17 +449,17 @@
 	      					(function() {
 	      						var failingIndex = i;
 								that.message = function() {
-									return "Expected token content '" + expectedContent + "' but found '" + actualContent + "' at index " + failingIndex;	
-								} 
+									return "Expected token content '" + expectedContent + "' but found '" + actualContent + "' at index " + failingIndex;
+								}
 							})();
 							return false;
 	      				}
 	      			}
-	      			
+
 	      			return true;
 	    		}
 	  		};
-		
+
 	  		canto34.Parser = function() {
 	  		};
 
@@ -390,7 +469,7 @@
 	  			}
 
 	  			if (!(tokens instanceof Array)) {
-	  				throw new canto34.ParserException("A non-array was provided to the parser instead of a token array");	
+	  				throw new canto34.ParserException("A non-array was provided to the parser instead of a token array");
 	  			}
 
 	  			this.tokens = tokens;
@@ -434,7 +513,7 @@
 	  		};
 
 	  		canto34.LineTracker.prototype.consume = function(content) {
-	  			
+
 	  			for(var i = 0, len=content.length; i < len; i++) {
 	  				if (content[i] == "\r") {
 	  					this.line += 1;

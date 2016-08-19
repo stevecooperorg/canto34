@@ -51,12 +51,12 @@ describe('When adding token types to the lexer,', function() {
 		}).not.toThrow();
 	});
 
-	it('does not allow both regexp and consume functions', function() {
-		expect(function() {
-			tokenType.consume = function() { };
-			lexer.addTokenType(tokenType);
-		}).toThrow("Token types cannot have both a 'regexp' pattern and 'consume' function.");
-	});
+	// it('does not allow both regexp and consume functions', function() {
+	// 	expect(function() {
+	// 		tokenType.consume = function() { };
+	// 		lexer.addTokenType(tokenType);
+	// 	}).toThrow("Token types cannot have both a 'regexp' pattern and 'consume' function.");
+	// });
 
     it('requires the consume property to be a function', function() {
 		expect(function() {
@@ -511,6 +511,21 @@ describe("the canto jasmine matchers", function() {
 		expect(msg).toBe("Expected 0 tokens but found 1");
 	});
 })
+
+describe("the tmLanguage generator", function() {
+	
+    var lexer;
+	var tokenType;
+
+	beforeEach(function() {
+		lexer = require('./example.js').lexer;
+	});
+
+	it("should generate a file without complaining", function() {
+		var actual = canto34.tmLanguage.generateTmLanguageDefinition(lexer);
+		expect(actual.length).not.toBe(0);
+	});
+});
 
 describe("the parser", function() {
 

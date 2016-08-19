@@ -21,7 +21,7 @@ We'll see how to parse this language. First, you write a lexer which
 identifies the different kinds of token -- names, integers, commas, and
 periods;
 
-    var lexer = new canto34.Lexer();
+    var lexer = new canto34.Lexer({ languageName: "nameValuePairs" });
 
     // add a token for whitespace
     lexer.addTokenType({ 
@@ -97,3 +97,26 @@ Canto 34 is designed for quickly writing parsers for straightforward domain-
 specific languages (DSLs). Please don't use it for writing parsers for
 general-purpose programming languages -- it's not designed to be that fast or
 powerful.
+
+tmLanguage / Sublime Text Syntax Highlighting
+-----
+Starting in v0.0.5, I've added a function to let you generate a `.tmLanguage` file. This is the syntax highlighting system of TextMate, Sublime Text, Atom, and Visual Studio code. 
+
+This is actually pretty sweet; it makes your language feel a bit more 'first class' when you get the richer IDE experience.
+
+You first generate the file content, then save it wherever your text editor demands. For example, To use it with Sublime Text 3 on windows, call code like so, swapping `{myusername}` with the name of your user account;
+
+    var content = canto34.tmLanguage.generateTmLanguageDefinition(lexer);
+    require('fs').writeFileSync("C:\\Users\\{myusername}\\AppData\\Roaming\\Sublime Text 3\\Packages\\User\\myparser.tmLanguage", content);
+
+This will write out a syntax highlighting file into your User folder, which is a personal 'dumping ground' for configuration bits and pieces on your machine for Sublime Text. When
+you restart ST, you'll see your language in the list of language options, displayed in the bottom-right.
+
+You'll need to configure the tokens in your lexer a bit more. For example, if you have a variable name token, you'll need to tell the lexer that this should be highlighted one way, and if you have a keyword like 'for', you'll use another. Do this with the `roles` option on a token type;
+
+    lexer.addTokenType({ name: "comment", ignore: true, regexp: /^#.*/, role: ["comment", "line"] });
+    lexer.addTokenType(types.constant("for","for", ["keyword"]));
+    lexer.addTokenType(types.constant("[", "openSquare", ["punctuation"]));
+    lexer.addTokenType(types.constant("]", "closeSquare", ["punctuation"]));
+
+The list of roles isn't clear to me - I've just figured out some key ones like `keyword`, `comment`, and `punctuation` from reverse engineering existing `tmLanguage` files.

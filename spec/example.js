@@ -17,7 +17,11 @@
 	    });
 	    
 	    // add a token type for names, defines as strings of lower-case characters
-	    lexer.addTokenType({ name: "name", regexp: /^[a-z]+/  });
+	    lexer.addTokenType({ 
+			name: "name", 
+			regexp: /^[a-z]+/,
+			role: ['entity', 'name']
+  		});
 	    
 	    // bring in some predefined types for commas, period, and integers.
 	    var types = canto34.StandardTokenTypes;
