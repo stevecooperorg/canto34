@@ -1,16 +1,14 @@
-"use strict"
-var canto34 = require('../src/canto34');
-var example = require('./example');
+import * as canto34 from '../src/canto34';
+import expect, { createSpy, spyOn, isSpy } from 'expect';
+import example from './example';
+
+expect.extend(canto34.expectMatchers);
 
 var lexer = example.lexer;
 var parser = example.parser;
 
 describe("The README.md example", function() {
-
-    beforeEach(function() {
-        this.addMatchers(canto34.Jasmine.matchers);
-    });
-
+    
     describe("lexer", function() {
         it("should work as advertised", function() {
             var tokens = lexer.tokenize("foo 1, bar 2.");

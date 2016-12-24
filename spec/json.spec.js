@@ -1,5 +1,4 @@
-"use strict"
-var canto34 = require('../src/canto34');
+import * as canto34 from '../src/canto34';
 
 var lexer = new canto34.Lexer();
 var types = canto34.StandardTokenTypes;
