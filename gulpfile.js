@@ -10,7 +10,7 @@ const watch  = require('gulp-watch');
 gulp.task('default', ['compile', 'test']);
 
 gulp.task('watch', function() {
-    gulp.watch(['gulpfile.js', 'spec/**', 'src/**'], ['compile', 'test']);
+    gulp.watch(['spec/**', 'src/**'],   { ignoreInitial: false }, ['compile', 'test']);
 });
 
 gulp.task("compile", function () {
@@ -19,11 +19,12 @@ gulp.task("compile", function () {
         .pipe(jshint({esversion: 6}))
         .pipe(jshint.reporter('default'))
         .pipe(sourcemaps.init())
-        .pipe(babel({ plugins: ["transform-es2015-modules-umd"] }))
-        .pipe(sourcemaps.write("."))
+        .pipe(babel({
+  "plugins": ["transform-es2015-modules-umd"]
+}))
         .pipe(gulp.dest("dist"));
 });
-
+  
 gulp.task('test', function() {
     gulp
         .src(['spec/*.js'])

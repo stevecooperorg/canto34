@@ -1,6 +1,6 @@
 import * as canto34 from '../src/canto34';
 import expect, { createSpy, spyOn, isSpy } from 'expect';
-import example from './example';
+import example from '../src/example';
 
 expect.extend(canto34.expectMatchers);
 

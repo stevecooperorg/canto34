@@ -13,7 +13,7 @@ describe('When adding token types to the lexer,', function() {
 		tokenType = {
 			name: "name",
 			regexp: / \t/
-		};
+		}; 
 	});
 
 	it('requires token types to have names', function() {
@@ -53,13 +53,6 @@ describe('When adding token types to the lexer,', function() {
 			lexer.addTokenType(tokenType);
 		}).toNotThrow();
 	});
-
-	// it('does not allow both regexp and consume functions', function() {
-	// 	expect(function() {
-	// 		tokenType.consume = function() { };
-	// 		lexer.addTokenType(tokenType);
-	// 	}).toThrow("Token types cannot have both a 'regexp' pattern and 'consume' function.");
-	// });
 
     it('requires the consume property to be a function', function() {
 		expect(function() {
@@ -250,6 +243,27 @@ describe("the lexer standard integer type", function() {
 	});
 });
 
+
+describe("the lexer standard floating point type", function() {
+	var lexer = new canto34.Lexer();
+	lexer.addTokenType(canto34.StandardTokenTypes.floatingPoint());
+
+	it("should parse floating points", function() {
+		var tokens = lexer.tokenize("123.45");
+		expect(tokens).toEqual([ {content: 123.45, type:"floating point", line:1, character:1}]);
+	});
+
+	it("should parse floating points without leading number", function() {
+		var tokens = lexer.tokenize(".5");
+		expect(tokens).toEqual([ {content: 0.5, type:"floating point", line:1, character:1}]);
+	});
+
+	it("should parse negative floating points", function() {
+		var tokens = lexer.tokenize("-123.45");
+		expect(tokens).toEqual([ {content: -123.45, type:"floating point", line:1, character:1}]);
+	});
+});
+
 describe("the lexer standard JSON string type", function() {
 	var lexer = new canto34.Lexer();
 	lexer.addTokenType(canto34.StandardTokenTypes.JsonString());
@@ -432,93 +446,6 @@ describe("the lexer standard types", function() {
 				"close square bracket",
 				"open paren",
 				"close paren"]);
-	});
-
-});
-
-describe("the canto jasmine matchers", function() {
-
-	it("should be defined", function() {
-		expect(canto34.expectMatchers).toExist();
-	});
-
-	it("should detect correct token types", function() {
-		expect([
-			{ content: "x", type:"y", line:1, character:1},
-			{ content: "a", type:"b", line:1, character:2}
-		]).toHaveTokenTypes(["y", "b"]);
-	});
-
-	it("should detect different token types", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", line:1, character:1},
-				{ content: "a", type:"b", line:1, character:2}
-			]
-		};
-		var result = canto34.expectMatchers.toHaveTokenTypes.call(expectResult, ["y", "WRONG"]);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected token type 'WRONG' but found 'b' at index 1");
-	});
-
-	it("should detect correct token content", function() {
-		expect([
-			{ content: "x", type:"y", position:0},
-			{ content: "a", type:"b", position:1}
-		]).toHaveTokenContent(["x", "a"]);
-	});
-
-	it("should detect different token content", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-				{ content: "a", type:"b", position:1}
-			]
-		};
-		var result = canto34.expectMatchers.toHaveTokenContent.call(expectResult, ["x", "WRONG"]);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected token content 'WRONG' but found 'a' at index 1");
-	});
-
-	it("should detect different lengths when checking types", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-			]
-		};
-		var result = canto34.expectMatchers.toHaveTokenTypes.call(expectResult, []);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected 0 tokens but found 1");
-	});
-
-	it("should detect different lengths when checking content", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-			]
-		};
-		var result = canto34.expectMatchers.toHaveTokenContent.call(expectResult, []);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected 0 tokens but found 1");
-	});
-});
-
-describe("the tmLanguage generator", function() {
-	
-    var lexer;
-	var tokenType;
-
-	beforeEach(function() {
-		lexer = require('./example.js').lexer;
-	});
-
-	it("should generate a file without complaining", function() {
-		var actual = canto34.tmLanguage.generateTmLanguageDefinition(lexer);
-		expect(actual.length).toNotBe(0);
 	});
 });
 

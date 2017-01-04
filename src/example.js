@@ -1,5 +1,5 @@
 
-var canto34 = require('../src/canto34');
+import * as canto34 from './canto34';
 
 var lexer = new canto34.Lexer();
 
@@ -11,11 +11,7 @@ lexer.addTokenType({
 });
 
 // add a token type for names, defines as strings of lower-case characters
-lexer.addTokenType({ 
-	name: "name", 
-	regexp: /^[a-z]+/,
-	role: ['entity', 'name']
-});
+lexer.addTokenType({ name: "name", regexp: /^[a-z]+/, role: ['entity', 'name'] });
 
 // bring in some predefined types for commas, period, and integers.
 var types = canto34.StandardTokenTypes;

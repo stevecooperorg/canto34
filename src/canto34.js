@@ -1,6 +1,4 @@
-import { build } from 'plist';
-
-var util = {
+let util = {
 	lang: {
 		isNullOrUndefined: function(x) {
 			if (typeof x === "undefined") {
@@ -195,6 +193,16 @@ class StandardTokenTypes {
 			role: role
 		};
 	}
+	static floatingPoint() {
+		return {
+			name: "floating point",
+			regexp: /(^-?\d*\.\d+)/,
+			role: ["constant", "numeric"],
+			interpret: function(content) {
+				return parseFloat(content);
+			}
+		};
+	}
 	static integer() {
 		return {
 			name: "integer",
@@ -323,123 +331,6 @@ class StandardTokenTypes {
 	}
 }
 
-class tmLanguage {
-	static generateTmLanguageDefinition(lexer) {
-		// https://github.com/TooTallNate/plist.js
-		//var build = require('plist').build;
-		var languageDef = {
-			name: lexer.options.languageName,
-			patterns: []
-		};
-
-		lexer.tokenTypes.forEach(tt => {
-
-			// convert the regex back to a string; clean off leading and trailing slashes,
-			// and leading ^ characters, which are meaningless.
-			if (!tt.regexp) {
-				throw "no regex for " + tt.name;
-			}
-			var regexPattern = tt.regexp.toString();
-			regexPattern = regexPattern.substr(1, regexPattern.length - 2);
-			if (regexPattern.indexOf("^") === 0) {
-				regexPattern = regexPattern.substr(1);
-			}
-
-			// the name value represents the tmLanguage 'role', such as
-			// 'keyword.control.mylanguage' for 'a keyword in my language'.
-			// This is used in the colour schemes of text editors to give
-			// tokens appropriate colours. Token types can supply these roles
-
-			var nameParts;
-			if (typeof(tt.role) === "string") {
-				nameParts = [ tt.role ];
-			} else {
-				nameParts = tt.role || [];
-			}
-
-			nameParts.push(tt.name);
-
-			if (lexer.options.languageName) {
-				nameParts.push(lexer.options.languageName);
-			}
-
-			var noDups = [];
-			for(var i = 0; i < nameParts.length; i++) {
-				if (noDups.indexOf(nameParts[i]) === -1) {
-					noDups.push(nameParts[i]);
-				}
-			}
-
-			languageDef.patterns.push({
-				match: regexPattern,
-				name:  noDups.join(".")
-			});
-		});
-
-		var result = build(languageDef);
-
-		return result;
-	}
-}
-
-let expectMatchers = {
-	toHaveTokenTypes(expected) {
-		var msg = "";
-		this.message = () => msg;
-		var actualLength = this.actual.length;
-		var expectedLength = expected.length;
-		if (actualLength != expectedLength) {
-			msg = "Expected " + expectedLength + " tokens but found " + actualLength;
-			return false;
-		}
-
-		for(var i = 0; i < actualLength; i++) {
-			var actualType = this.actual[i].type;
-			var expectedType = expected[i];
-			if (actualType != expectedType) {
-				msg = "Expected token type '" + expectedType + "' but found '" + actualType + "' at index " + i;
-				return false;
-			}
-		}
-
-		return true;
-	},
-	toHaveTokenContent(expected) {
-		var msg = "";
-		this.message = () => msg;
-
-		var actualLength = this.actual.length;
-		var expectedLength = expected.length;
-		if (actualLength != expectedLength) {
-			msg = "Expected " + expectedLength + " tokens but found " + actualLength;
-			return false;
-		}
-
-		for(var i = 0; i < actualLength; i++) {
-			var actualContent = this.actual[i].content;
-			var expectedContent = expected[i];
-			if (actualContent != expectedContent) {
-				msg = "Expected token content '" + expectedContent + "' but found '" + actualContent + "' at index " + i;
-				return false;
-			}
-		}
-
-		return true;
-	},	
-	toBeAt: function(line, character) {
-		var actualLine = this.actual.line;
-		var actualCharacter = this.actual.character;
-		if (actualLine != line) {
-			this.message = () => "Expected line to be " + line + " but it was " + actualLine;
-			return false;
-		}
-		if (actualCharacter != character) {
-			this.message = function () { return "Expected character to be " + character + " but it was " + actualCharacter ; };
-			return false;
-		}
-		return true;
-	}
-};
 
 class Parser {
 	initialize(tokens) {
@@ -516,7 +407,5 @@ export {
 	Lexer, 
 	StandardTokenTypes, 
 	Parser, 
-	LineTracker, 
-	tmLanguage,
-	expectMatchers
+	LineTracker
  };
