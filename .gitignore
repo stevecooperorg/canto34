@@ -136,7 +136,7 @@ Desktop.ini
 # Packages
 *.egg
 *.egg-info
-dist
+#dist
 build
 eggs
 parts
@@ -166,3 +166,4 @@ pip-log.txt
 # Node packages
 #############
 node_modules/
+*.tgz
