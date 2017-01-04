@@ -105,6 +105,11 @@ specific languages (DSLs). Please don't use it for writing parsers for
 general-purpose programming languages -- it's not designed to be that fast or
 powerful.
 
+Extras - syntax highlighting and tdd with expect.js
+=====
+
+Right now, if you get the source code from [github](https://github.com/stevecooperorg/canto34), you'll find two other modules. I'll endeavor to upload them to npm soon.
+
 canto34-syntax.js - tmLanguage / Sublime Text Syntax Highlighting
 -----
 Starting in v0.0.5, I've added a function to let you generate a `.tmLanguage` file. This is the syntax highlighting system of TextMate, Sublime Text, Atom, and Visual Studio code. 
