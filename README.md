@@ -108,7 +108,7 @@ powerful.
 Extras - syntax highlighting and tdd with expect.js
 =====
 
-Right now, if you get the source code from [github](https://github.com/stevecooperorg/canto34), you'll find two other modules. I'll endeavor to upload them to npm soon.
+Right now, if you get the source code from [github](https://github.com/stevecooperorg/canto34), or you install via npm and look in `node_modules/canto34/dist`, you'll find two other modules. I'll endeavor to upload them to npm soon.
 
 canto34-syntax.js - tmLanguage / Sublime Text Syntax Highlighting
 -----
