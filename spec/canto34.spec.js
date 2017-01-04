@@ -1,5 +1,7 @@
-"use strict"
-var canto34 = require('../src/canto34');
+import * as canto34 from '../src/canto34';
+import expect, { createSpy, spyOn, isSpy } from 'expect';
+
+expect.extend(canto34.expectMatchers);
 
 describe('When adding token types to the lexer,', function() {
 
@@ -11,10 +13,11 @@ describe('When adding token types to the lexer,', function() {
 		tokenType = {
 			name: "name",
 			regexp: / \t/
-		};
+		}; 
 	});
 
 	it('requires token types to have names', function() {
+
 		expect(function() {
 			delete tokenType.name;
 			lexer.addTokenType(tokenType); 
@@ -33,7 +36,7 @@ describe('When adding token types to the lexer,', function() {
 			delete tokenType.regexp;
 			tokenType.consume = function() {};
 			lexer.addTokenType(tokenType); 
-		}).not.toThrow();
+		}).toNotThrow();
 	});
 
     it('requires the regexp property to be a regexp', function() {
@@ -48,15 +51,8 @@ describe('When adding token types to the lexer,', function() {
 			delete tokenType.regexp;
 			tokenType.consume = function() { };
 			lexer.addTokenType(tokenType);
-		}).not.toThrow();
+		}).toNotThrow();
 	});
-
-	// it('does not allow both regexp and consume functions', function() {
-	// 	expect(function() {
-	// 		tokenType.consume = function() { };
-	// 		lexer.addTokenType(tokenType);
-	// 	}).toThrow("Token types cannot have both a 'regexp' pattern and 'consume' function.");
-	// });
 
     it('requires the consume property to be a function', function() {
 		expect(function() {
@@ -70,7 +66,7 @@ describe('When adding token types to the lexer,', function() {
 		expect(function() {
 			tokenType.interpret = function() { return 0; };
 			lexer.addTokenType(tokenType);
-		}).not.toThrow();
+		}).toNotThrow();
 	});
 
 	it('requires the interpret property to be a function', function() {
@@ -95,14 +91,14 @@ describe('When lexing tokens', function() {
 		expect(function() {
 			lexer.tokenize(undefined);
 		}).toThrow("No content provided");
-	})
+	});
 
 	it('requires at least one token type', function() {
 		expect(function() {
 			// we've not added any token types
 			lexer.tokenize("something to tokenise");
 		}).toThrow("No token types defined");
-	})
+	});
 
     it('can tokenize a simple example', function() {
 		lexer.addTokenType({
@@ -121,7 +117,7 @@ describe('When lexing tokens', function() {
 			{ content: "bbb", type: "B", character:4, line:1 },
 			{ content: "aaa", type: "A", character:7, line:1 },
 		]);
-    })
+    });
 
 	it('allows the use of an ignore flag in token types', function() {
 
@@ -247,13 +243,30 @@ describe("the lexer standard integer type", function() {
 	});
 });
 
+
+describe("the lexer standard floating point type", function() {
+	var lexer = new canto34.Lexer();
+	lexer.addTokenType(canto34.StandardTokenTypes.floatingPoint());
+
+	it("should parse floating points", function() {
+		var tokens = lexer.tokenize("123.45");
+		expect(tokens).toEqual([ {content: 123.45, type:"floating point", line:1, character:1}]);
+	});
+
+	it("should parse floating points without leading number", function() {
+		var tokens = lexer.tokenize(".5");
+		expect(tokens).toEqual([ {content: 0.5, type:"floating point", line:1, character:1}]);
+	});
+
+	it("should parse negative floating points", function() {
+		var tokens = lexer.tokenize("-123.45");
+		expect(tokens).toEqual([ {content: -123.45, type:"floating point", line:1, character:1}]);
+	});
+});
+
 describe("the lexer standard JSON string type", function() {
 	var lexer = new canto34.Lexer();
 	lexer.addTokenType(canto34.StandardTokenTypes.JsonString());
-
-	beforeEach(function() {
-		this.addMatchers(canto34.Jasmine.matchers);
-	});
 
 	it("should parse an empty string", function() {
 		var tokens = lexer.tokenize('""');
@@ -310,7 +323,7 @@ describe("the lexer standard whitespace type", function() {
 
 	beforeEach(function() {
 		lexer = new canto34.Lexer();
-	})
+	});
 	
 	it("should default to skipping whitespace tokens", function() {
 		lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
@@ -351,7 +364,7 @@ describe("the lexer standard whitespace and newline type", function() {
 
 	beforeEach(function() {
 		lexer = new canto34.Lexer();
-	})
+	});
 	
 	it("should default to skipping whitespace tokens", function() {
 		lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
@@ -378,11 +391,11 @@ describe("the lexer standard whitespace and newline type", function() {
     	lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
 		expect(function() {
 			return lexer.tokenize("\r");
-		}).not.toThrow();
+		}).toNotThrow();
 
 		expect(function() {
 			return lexer.tokenize("\n");
-		}).not.toThrow();
+		}).toNotThrow();
 	});
 });
 
@@ -391,7 +404,6 @@ describe("the lexer standard types", function() {
 	var lexer;
 	beforeEach(function() {
 		lexer = new canto34.Lexer();
-		this.addMatchers(canto34.Jasmine.matchers);
 	});
 
 	it("should recognise commas", function() {
@@ -434,96 +446,6 @@ describe("the lexer standard types", function() {
 				"close square bracket",
 				"open paren",
 				"close paren"]);
-	});
-
-});
-
-describe("the canto jasmine matchers", function() {
-	beforeEach(function() {
-		this.addMatchers(canto34.Jasmine.matchers);
-	});
-
-	it("should be defined", function() {
-		expect(canto34.Jasmine.matchers).toBeDefined();
-	});
-
-	it("should detect correct token types", function() {
-		expect([
-			{ content: "x", type:"y", line:1, character:1},
-			{ content: "a", type:"b", line:1, character:2}
-		]).toHaveTokenTypes(["y", "b"]);
-	});
-
-	it("should detect different token types", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", line:1, character:1},
-				{ content: "a", type:"b", line:1, character:2}
-			]
-		};
-		var result = canto34.Jasmine.matchers.toHaveTokenTypes.call(expectResult, ["y", "WRONG"]);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected token type 'WRONG' but found 'b' at index 1");
-	});
-
-	it("should detect correct token content", function() {
-		expect([
-			{ content: "x", type:"y", position:0},
-			{ content: "a", type:"b", position:1}
-		]).toHaveTokenContent(["x", "a"]);
-	});
-
-	it("should detect different token content", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-				{ content: "a", type:"b", position:1}
-			]
-		};
-		var result = canto34.Jasmine.matchers.toHaveTokenContent.call(expectResult, ["x", "WRONG"]);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected token content 'WRONG' but found 'a' at index 1");
-	});
-
-	it("should detect different lengths when checking types", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-			]
-		};
-		var result = canto34.Jasmine.matchers.toHaveTokenTypes.call(expectResult, []);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected 0 tokens but found 1");
-	});
-
-	it("should detect different lengths when checking content", function() {
-		var expectResult = {
-			actual: [
-				{ content: "x", type:"y", position:0},
-			]
-		};
-		var result = canto34.Jasmine.matchers.toHaveTokenContent.call(expectResult, []);
-		expect(result).toBe(false);	
-		var msg = expectResult.message();
-		expect(msg).toBe("Expected 0 tokens but found 1");
-	});
-})
-
-describe("the tmLanguage generator", function() {
-	
-    var lexer;
-	var tokenType;
-
-	beforeEach(function() {
-		lexer = require('./example.js').lexer;
-	});
-
-	it("should generate a file without complaining", function() {
-		var actual = canto34.tmLanguage.generateTmLanguageDefinition(lexer);
-		expect(actual.length).not.toBe(0);
 	});
 });
 
@@ -612,7 +534,7 @@ describe("the parser", function() {
    it("should not throw if there are no tokens and expectEof() called", function() {
 		var parser = new canto34.Parser();
 		parser.initialize([]);
-		expect(parser.expectEof.bind(parser)).not.toThrow();
+		expect(parser.expectEof.bind(parser)).toNotThrow();
    });
 
 });
@@ -622,21 +544,6 @@ describe("canto34.LineTracker", function() {
 	var tracker;
 	beforeEach(function() {
 		tracker = new canto34.LineTracker();
-		this.addMatchers({
-			toBeAt: function(line, character) {
-				var actualLine = this.actual.line;
-				var actualCharacter = this.actual.character;
-				if (actualLine != line) {
-					this.message = function () { return "Expected line to be " + line + " but it was " + actualLine ; };
-					return false;
-				}
-				if (actualCharacter != character) {
-					this.message = function () { return "Expected character to be " + character + " but it was " + actualCharacter ; };
-					return false;
-				}
-				return true;
-			}
-		})
 	});
 
 	it("should initialize to 1,1", function() {
@@ -675,4 +582,4 @@ describe("canto34.LineTracker", function() {
 
 	});
 
-})
+});

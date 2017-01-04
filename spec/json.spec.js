@@ -1,9 +1,12 @@
-"use strict"
-var canto34 = require('../src/canto34');
+import * as canto34 from '../src/canto34';
+import expect, { createSpy, spyOn, isSpy } from 'expect';
+
+expect.extend(canto34.expectMatchers);
 
 var lexer = new canto34.Lexer();
 var types = canto34.StandardTokenTypes;
 lexer.addTokenType(types.JsonString());
+lexer.addTokenType(types.floatingPoint());
 lexer.addTokenType(types.integer());
 lexer.addTokenType(types.whitespaceWithNewlines());
 lexer.addTokenType(types.openBracket());
@@ -16,8 +19,14 @@ lexer.addTokenType(types.closeParen());
 var parser = new canto34.Parser();
 
 describe("The JSON lexer", function() {
-	// it("should parse all the token types", function() {
-	// 	var input = "( ) { } [ ] 123 -123 1.234 -1.234";
-	// 	var tokens = lexer.tokenize(input);
-	// });
+	it("should parse all the token types", function() {
+		var input = "( ) { } [ ] 123 -123 1.234 -1.234";
+		var tokens = lexer.tokenize(input);
+		expect(tokens).toHaveTokenTypes([
+			'open paren', 'close paren', 
+			'open bracket', 'close bracket', 
+			'open square bracket', 'close square bracket', 
+			'integer', 'integer', 
+			'floating point', 'floating point']);
+	});
 });

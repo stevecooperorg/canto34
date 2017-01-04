@@ -1,46 +1,56 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Canto34 Example</title>
+	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"></link>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.14/require.js"></script>
 </head>
+
 <body>
 
-<h1>Canto34 Example</h1>
+	<div class="container">
 
-<p>We start with this input:</p>
-<code><pre data-bind="text: input"></pre></code>
-<p>And then we turn it into tokens;</p>
-<code><pre data-bind="text: tokens"></pre></code>
-<p>Which returns this result;</p>
-<code><pre data-bind="text: result"></pre></code>
+		<h1>Canto34 Example</h1>
 
-<script>
-        require(['./src/canto34', './spec/example'], function(canto34, example) {
-        	"use strict";
+		<p>We start with this input:</p>
+		<code><pre data-bind="text: input"></pre></code>
+		<p>And then we turn it into tokens;</p>
+		<code><pre data-bind="text: tokens"></pre></code>
+		<p>Which returns this result;</p>
+		<code><pre data-bind="text: result"></pre></code>
+	</div>
 
-            var lexer = example.lexer;
-        	var parser= example.parser;
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script>
+	require(['./dist/canto34', './dist/example'], function (canto34, example) {
+		"use strict";
 
-        	var input = "foo 1, bar 2.";
-        	var tokens = lexer.tokenize(input);
-        	var tokenString = JSON.stringify(tokens, null, 4);
+		var lexer = example.lexer;
+		var parser = example.parser;
 
-            parser.initialize(tokens);
-            parser.listOfNameValuePairs();
-    
-            var vm = {
-            	input: input,
-            	tokens: tokenString,
-            	result: JSON.stringify(parser.result, null, 4)
-            };
+		var input = "foo 1, bar 2.";
+		var tokens = lexer.tokenize(input);
+		var tokenString = JSON.stringify(tokens, null, 4);
 
-            $(function() {
-                ko.applyBindings(vm);
-            });
-        });
-	</script>
+		parser.initialize(tokens);
+		parser.listOfNameValuePairs();
+
+		var vm = {
+			input: input,
+			tokens: tokenString,
+			result: JSON.stringify(parser.result, null, 4)
+		};
+
+		$(function () {
+			ko.applyBindings(vm);
+		});
+	});
+</script>
 </body>
+
 </html>
