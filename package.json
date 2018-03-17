@@ -25,7 +25,8 @@
     "xmlbuilder": "^8.2.2"
   },
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp test",
+    "start": "docker build . -t canto34:dev && docker run canto34:dev"
   },
   "repository": {
     "type": "git",

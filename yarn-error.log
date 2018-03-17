@@ -1,0 +1,81 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js start
+
+PATH: 
+  '/Users/stevecooper/Box\ Sync/steve-cooper-private/scripts':/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/stevecooper/scripts
+
+Yarn version: 
+  1.5.1
+
+Node version: 
+  8.9.1
+
+Platform: 
+  darwin x64
+
+npm manifest: 
+  {
+    "name": "canto34",
+    "version": "2.0.1",
+    "description": "A library for helping you build recursive descent parsers and regex-based lexers",
+    "main": "dist/canto34.js",
+    "directories": {
+      "doc": "docs",
+      "example": "examples",
+      "test": "spec"
+    },
+    "dependencies": {},
+    "devDependencies": {
+      "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+      "babel-preset-env": "^1.1.4",
+      "babel-preset-es2015": "^6.18.0",
+      "babel-register": "^6.18.0",
+      "gulp": "^3.9.1",
+      "gulp-babel": "^6.1.2",
+      "gulp-concat": "^2.6.1",
+      "gulp-jshint": "^2.0.4",
+      "gulp-mocha": "^3.0.1",
+      "gulp-sourcemaps": "^1.9.1",
+      "gulp-watch": "^4.3.11",
+      "jshint": "^2.9.4",
+      "xmlbuilder": "^8.2.2"
+    },
+    "scripts": {
+      "test": "gulp test",
+      "start": "docker build . -t canto34:dev && docker run canto34:dev",
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/stevecooperorg/canto34.git"
+    },
+    "babel": {
+      "presets": [
+        "es2015"
+      ]
+    },
+    "keywords": [
+      "parsing",
+      "lexing",
+      "lexical analysis",
+      "parser",
+      "lexer"
+    ],
+    "author": "Steve Cooper",
+    "license": "BSD",
+    "gitHead": "f0e22e23f61dfffc0fcc56e7146b9c73b672df10"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  SyntaxError: /Users/stevecooper/src/sc/canto34/package.json: Unexpected token } in JSON at position 847
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:1036:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:98:30)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:109:13
+      at <anonymous>
