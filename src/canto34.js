@@ -166,6 +166,7 @@ class Lexer {
 
 				remaining = remaining.substring(consumed.length);
 				tracker.consume(consumed);
+				break; //This break is needed as we need to start matching from top of tokenType list
 
 			}
 
