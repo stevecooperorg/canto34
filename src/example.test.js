@@ -1,14 +1,6 @@
-import * as canto34 from '../src/canto34';
-import expect, { createSpy, spyOn, isSpy } from 'expect';
-import example from '../src/example';
-
-expect.extend(canto34.expectMatchers);
-
-var lexer = example.lexer;
-var parser = example.parser;
+import { lexer, parser } from './example';
 
 describe("The README.md example", function() {
-    
     describe("lexer", function() {
         it("should work as advertised", function() {
             var tokens = lexer.tokenize("foo 1, bar 2.");

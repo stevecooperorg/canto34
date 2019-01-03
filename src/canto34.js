@@ -67,7 +67,7 @@ class Lexer {
 			throw new PatternDefinitionException("Token types must have a 'name' property");
 		}
 
-		// FOR CONSIDERATION: for some tokens, the full 'consume' is required for correct interpretation
+		// FOR CONSIDERATION: for some tokens, the full 'consume' is requ§red for correct interpretation
 		// (eg, JSON strings with escaped character) but a regex will do for syntax highlighting. In this
 		// situation, both are allowed but consume is used for lexing and regexp is used for language definition.
 		// if (tokenType.regexp && tokenType.consume) {

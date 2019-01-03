@@ -1,15 +1,13 @@
-import * as canto34 from '../src/canto34';
-import { expectMatchers } from '../src/canto34-expect';
-import expect, { createSpy, spyOn, isSpy } from 'expect';
-import { lexer } from '../src/example';
+import * as canto34 from './canto34';
+import {expectMatchers} from "./canto34-expect";
 
 expect.extend({
-	toFailTest(msg) {
+	toFailTest(actual, msg) {
 		let failed = false;
 		let actualMessage = "";
 		try
 		{
-			this.actual();
+			actual();
 		} 
 		catch(ex)
 		{
@@ -17,20 +15,31 @@ expect.extend({
 			failed = true;
 		}
 
-        expect.assert(failed, 'function should have failed exception');
-
-        if(msg) {
-			expect.assert(actualMessage === msg, `failed test: expected "${msg}" but was "${actualMessage}"`);
+		if (!failed) {
+			return {
+				pass: false,
+				message: 'function should have failed exception'
+			};
 		}
+
+		if (msg && actualMessage !== msg) {
+      return {
+        pass: false,
+        message: `failed test: expected "${msg}" but was "${actualMessage}"`
+      };
+		}
+
+    return {
+      pass: true,
+      message: ""
+    };
 	}
 });
-
-expect.extend(canto34.expectMatchers);
 
 describe("the canto expect matchers", function() {
 
 	it("should be defined", function() {
-		expect(expectMatchers).toExist();
+		expect(expectMatchers).toBeDefined();
 	});
 
 	it("should detect correct token types", function() {

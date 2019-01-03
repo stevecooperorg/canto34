@@ -1,7 +1,4 @@
-import * as canto34 from '../src/canto34';
-import expect, { createSpy, spyOn, isSpy } from 'expect';
-
-expect.extend(canto34.expectMatchers);
+import * as canto34 from './canto34';
 
 describe('When adding token types to the lexer,', function() {
 
@@ -36,7 +33,7 @@ describe('When adding token types to the lexer,', function() {
 			delete tokenType.regexp;
 			tokenType.consume = function() {};
 			lexer.addTokenType(tokenType); 
-		}).toNotThrow();
+		}).not.toThrow();
 	});
 
     it('requires the regexp property to be a regexp', function() {
@@ -51,7 +48,7 @@ describe('When adding token types to the lexer,', function() {
 			delete tokenType.regexp;
 			tokenType.consume = function() { };
 			lexer.addTokenType(tokenType);
-		}).toNotThrow();
+		}).not.toThrow();
 	});
 
     it('requires the consume property to be a function', function() {
@@ -66,7 +63,7 @@ describe('When adding token types to the lexer,', function() {
 		expect(function() {
 			tokenType.interpret = function() { return 0; };
 			lexer.addTokenType(tokenType);
-		}).toNotThrow();
+		}).not.toThrow();
 	});
 
 	it('requires the interpret property to be a function', function() {
@@ -391,11 +388,11 @@ describe("the lexer standard whitespace and newline type", function() {
     	lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
 		expect(function() {
 			return lexer.tokenize("\r");
-		}).toNotThrow();
+		}).not.toThrow();
 
 		expect(function() {
 			return lexer.tokenize("\n");
-		}).toNotThrow();
+		}).not.toThrow();
 	});
 });
 
@@ -534,7 +531,7 @@ describe("the parser", function() {
    it("should not throw if there are no tokens and expectEof() called", function() {
 		var parser = new canto34.Parser();
 		parser.initialize([]);
-		expect(parser.expectEof.bind(parser)).toNotThrow();
+		expect(parser.expectEof.bind(parser)).not.toThrow();
    });
 
 });

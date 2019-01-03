@@ -1,74 +1,68 @@
-import { canto34 } from './canto34';
-import *  as expect from 'expect';
+const pass = (message) => ({
+  message: () => message,
+  pass: true,
+});
+
+const fail = (message) => ({
+  message: () => message,
+  pass: false,
+});
 
 let expectMatchers = {
-	toHaveTokenTypes(expected) {
-    	var actualLength = this.actual.length;
-		var expectedLength = expected.length;
-	
-	    expect.assert(
-			actualLength === expectedLength,
-			"Expected " + expectedLength + " tokens but found " + actualLength,
-			this.actual
-		);
+  toHaveTokenTypes(actual, expected) {
+    var actualLength = actual.length;
+    var expectedLength = expected.length;
 
-		for(var i = 0; i < actualLength; i++) {
-			var actualType = this.actual[i].type;
-			var expectedType = expected[i];
-			expect.assert(
-				actualType === expectedType,
-				"Expected token type '" + expectedType + "' but found '" + actualType + "' at index " + i,
-				actualType
-			);
-		}
+    if (actualLength !== expectedLength) {
+      return fail(`Expected ${expectedLength} tokens but found ${actualLength}`);
+    }
 
-		return this;
-	},
-	toHaveTokenContent(expected) {
-		var msg = "";
-		this.message = () => msg;
+    for (var i = 0; i < actualLength; i++) {
+      var actualType = actual[i].type;
+      var expectedType = expected[i];
+      if (actualType !== expectedType) {
+        return fail(`Expected token type '${expectedType}' but found '${actualType}' at index ${i}`);
+      }
+    }
 
-		var actualLength = this.actual.length;
-		var expectedLength = expected.length;
+    return pass("");
+  },
+  toHaveTokenContent(actual, expected) {
+    var msg = "";
 
-		expect.assert(
-			actualLength === expectedLength,
-			"Expected " + expectedLength + " tokens but found " + actualLength,
-			actualLength
-		);
-		
-		for(var i = 0; i < actualLength; i++) {
-			var actualContent = this.actual[i].content;
-			var expectedContent = expected[i];
+    var actualLength = actual.length;
+    var expectedLength = expected.length;
 
-			expect.assert(
-				actualContent === expectedContent,
-				"Expected token content '" + expectedContent + "' but found '" + actualContent + "' at index " + i,
-				actualContent
-			);
-		}
+    if(actualLength !== expectedLength) {
+      return fail(`Expected ${expectedLength} tokens but found ${actualLength}`);
+    }
 
-		return true;
-	},	
-	toBeAt(line, character) {
-		var actualLine = this.actual.line;
-		var actualCharacter = this.actual.character;
-		expect.assert(
-			actualLine === line,
-			"Expected line to be " + line + " but it was " + actualLine,
-            actualLine
-		);
+    for (var i = 0; i < actualLength; i++) {
+      var actualContent = actual[i].content;
+      var expectedContent = expected[i];
 
-		expect.assert(
-			actualCharacter === character,
-			"Expected character to be " + character + " but it was " + actualCharacter,
-			actualCharacter
-		);
+      if (actualContent !== expectedContent) {
+        return fail(`Expected token content '${expectedContent}' but found '${actualContent}' at index${i}`);
+      }
+    }
 
-		return this;
-	}
-}; 
+    return pass("");
+  },
+  toBeAt(actual, line, character) {
+    const actualLine = actual.line;
+    const actualCharacter = actual.character;
+    if(actualLine !== line) {
+      return fail(`Expected line to be ${line} but it was ${actualLine}`);
+    }
 
-export { 
-	expectMatchers
- };
+    if (actualCharacter !== character) {
+      fail(`Expected character to be ${character}  but it was ${actualCharacter}`)
+    }
+
+    return pass("");
+  }
+};
+
+export {
+  expectMatchers
+};

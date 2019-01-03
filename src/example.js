@@ -36,5 +36,5 @@ parser.nameValuePair = function() {
 	this.result.push({ name:name, value: value });
 };
 
-exports.lexer = lexer;
-exports.parser = parser;
+export const lexer = lexer;
+export const parser = parser;

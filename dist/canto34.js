@@ -1,558 +1,101 @@
-(function (global, factory) {
-	if (typeof define === "function" && define.amd) {
-		define(["exports"], factory);
-	} else if (typeof exports !== "undefined") {
-		factory(exports);
-	} else {
-		var mod = {
-			exports: {}
-		};
-		factory(mod.exports);
-		global.canto34 = mod.exports;
-	}
-})(this, function (exports) {
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () {
-		function defineProperties(target, props) {
-			for (var i = 0; i < props.length; i++) {
-				var descriptor = props[i];
-				descriptor.enumerable = descriptor.enumerable || false;
-				descriptor.configurable = true;
-				if ("value" in descriptor) descriptor.writable = true;
-				Object.defineProperty(target, descriptor.key, descriptor);
-			}
-		}
-
-		return function (Constructor, protoProps, staticProps) {
-			if (protoProps) defineProperties(Constructor.prototype, protoProps);
-			if (staticProps) defineProperties(Constructor, staticProps);
-			return Constructor;
-		};
-	}();
-
-	function _classCallCheck(instance, Constructor) {
-		if (!(instance instanceof Constructor)) {
-			throw new TypeError("Cannot call a class as a function");
-		}
-	}
-
-	function _possibleConstructorReturn(self, call) {
-		if (!self) {
-			throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-		}
-
-		return call && (typeof call === "object" || typeof call === "function") ? call : self;
-	}
-
-	function _inherits(subClass, superClass) {
-		if (typeof superClass !== "function" && superClass !== null) {
-			throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-		}
-
-		subClass.prototype = Object.create(superClass && superClass.prototype, {
-			constructor: {
-				value: subClass,
-				enumerable: false,
-				writable: true,
-				configurable: true
-			}
-		});
-		if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-	}
-
-	var util = {
-		lang: {
-			isNullOrUndefined: function isNullOrUndefined(x) {
-				if (typeof x === "undefined") {
-					return true;
-				}
-
-				if (x === null) {
-					return true;
-				}
-
-				return false;
-			}
-		},
-		extend: function extend() {
-			// conparable to jquery's extend
-			for (var i = 1; i < arguments.length; i++) {
-				for (var key in arguments[i]) {
-					if (arguments[i].hasOwnProperty(key)) arguments[0][key] = arguments[i][key];
-				}
-			}return arguments[0];
-		}
-	};
-
-	var PatternDefinitionException = function (_Error) {
-		_inherits(PatternDefinitionException, _Error);
-
-		function PatternDefinitionException(message) {
-			_classCallCheck(this, PatternDefinitionException);
-
-			return _possibleConstructorReturn(this, (PatternDefinitionException.__proto__ || Object.getPrototypeOf(PatternDefinitionException)).call(this, message));
-		}
-
-		return PatternDefinitionException;
-	}(Error);
-
-	var LexerException = function (_Error2) {
-		_inherits(LexerException, _Error2);
-
-		function LexerException(message) {
-			_classCallCheck(this, LexerException);
-
-			return _possibleConstructorReturn(this, (LexerException.__proto__ || Object.getPrototypeOf(LexerException)).call(this, message));
-		}
-
-		return LexerException;
-	}(Error);
-
-	var ParserException = function (_Error3) {
-		_inherits(ParserException, _Error3);
-
-		function ParserException(message) {
-			_classCallCheck(this, ParserException);
-
-			return _possibleConstructorReturn(this, (ParserException.__proto__ || Object.getPrototypeOf(ParserException)).call(this, message));
-		}
-
-		return ParserException;
-	}(Error);
-
-	var Lexer = function () {
-		function Lexer(options) {
-			_classCallCheck(this, Lexer);
-
-			var defaults = {
-				languageName: "unnamedlanguage"
-			};
-			this.options = util.extend({}, defaults, options);
-			this.tokenTypes = [];
-		}
-
-		_createClass(Lexer, [{
-			key: "addTokenType",
-			value: function addTokenType(tokenType) {
-
-				if (!tokenType.name) {
-					throw new PatternDefinitionException("Token types must have a 'name' property");
-				}
-
-				// FOR CONSIDERATION: for some tokens, the full 'consume' is required for correct interpretation
-				// (eg, JSON strings with escaped character) but a regex will do for syntax highlighting. In this
-				// situation, both are allowed but consume is used for lexing and regexp is used for language definition.
-				// if (tokenType.regexp && tokenType.consume) {
-				// 	throw new canto34.PatternDefinitionException("Token types cannot have both a 'regexp' pattern and 'consume' function.");
-				// }
-
-				if (!tokenType.regexp && !tokenType.consume) {
-					throw new PatternDefinitionException("Token types must have a 'regexp' property or a 'consume' function");
-				}
-
-				if (tokenType.regexp && !(tokenType.regexp instanceof RegExp)) {
-					throw new PatternDefinitionException("Token types 'regexp' property must be an instance of RegExp");
-				}
-
-				if (tokenType.consume && typeof tokenType.consume !== "function") {
-					throw new PatternDefinitionException("Token types 'consume' property must be a function");
-				}
-
-				if (tokenType.interpret && typeof tokenType.interpret !== "function") {
-					throw new PatternDefinitionException("Token types 'interpret' property must be a function");
-				}
-				this.tokenTypes.push(tokenType);
-			}
-		}, {
-			key: "tokenize",
-			value: function tokenize(content) {
-				if (content === undefined) {
-					throw new LexerException("No content provided");
-				}
-
-				if (this.tokenTypes.length === 0) {
-					throw new LexerException("No token types defined");
-				}
-
-				var result = [];
-				var consumed;
-				var remaining = content;
-				var tracker = new LineTracker();
-				var tokenTypeLength = this.tokenTypes.length;
-				var consumeResult;
-
-				while (remaining.length > 0) {
-					var somethingFoundThisPass = false;
-
-					for (var i = 0; i < tokenTypeLength; i++) {
-						var tokenType = this.tokenTypes[i];
-
-						consumeResult = undefined;
-						if (tokenType.consume) {
-							// must have a consume function;
-							consumeResult = tokenType.consume(remaining);
-							// should have told us what it consumed;
-							if (consumeResult.success) {
-								if (remaining.indexOf(consumeResult.consumed) !== 0) {
-									throw new LexerException("The consume function for " + tokenType.name + " failed to return the start of the remaining content at " + tracker.line + "." + tracker.character + " and instead returned " + consumeResult.consumed);
-								} else {
-									somethingFoundThisPass = true;
-									consumed = consumeResult.consumed;
-								}
-							} else {
-								continue;
-							}
-						} else {
-							var match = tokenType.regexp.exec(remaining);
-							if (match) {
-								// we found a token! great. What did it say? We only
-								// want to match at the start of the string
-								if (match.index === 0) {
-									somethingFoundThisPass = true;
-									consumed = match[0];
-								} else {
-									continue;
-								}
-							} else {
-								continue;
-							}
-						}
-
-						//handle our new token
-						if (tokenType.interpret) {
-							content = tokenType.interpret(consumed);
-						} else if (consumeResult && !util.lang.isNullOrUndefined(consumeResult.content)) {
-							content = consumeResult.content;
-						} else {
-							content = consumed;
-						}
-
-						var token = {
-							content: content,
-							type: tokenType.name,
-							line: tracker.line,
-							character: tracker.character
-						};
-
-						if (!tokenType.ignore) {
-							result.push(token);
-						}
-
-						remaining = remaining.substring(consumed.length);
-						tracker.consume(consumed);
-					}
-
-					if (!somethingFoundThisPass) {
-						var userPartOfString = remaining.substring(0, 15);
-						var visibleUserPartOfString = userPartOfString.replace("\r", "\\r").replace("\t", "\\t").replace("\n", "\\n");
-						throw new LexerException("No viable alternative at " + tracker.line + "." + tracker.character + ": '" + visibleUserPartOfString + "...'");
-					}
-				}
-
-				return result;
-			}
-		}]);
-
-		return Lexer;
-	}();
-
-	function escapeRegExp(string) {
-		return string.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
-	}
-
-	var StandardTokenTypes = function () {
-		function StandardTokenTypes() {
-			_classCallCheck(this, StandardTokenTypes);
-		}
-
-		_createClass(StandardTokenTypes, null, [{
-			key: "constant",
-			value: function constant(literal, name, role) {
-				role = role || ["keyword"];
-				return {
-					name: name,
-					regexp: new RegExp("^" + escapeRegExp(literal)),
-					role: role
-				};
-			}
-		}, {
-			key: "floatingPoint",
-			value: function floatingPoint() {
-				return {
-					name: "floating point",
-					regexp: /(^-?\d*\.\d+)/,
-					role: ["constant", "numeric"],
-					interpret: function interpret(content) {
-						return parseFloat(content);
-					}
-				};
-			}
-		}, {
-			key: "integer",
-			value: function integer() {
-				return {
-					name: "integer",
-					regexp: /^-?\d+/,
-					role: ["constant", "numeric"],
-					interpret: function interpret(content) {
-						return parseInt(content);
-					}
-				};
-			}
-		}, {
-			key: "whitespace",
-			value: function whitespace() {
-				return {
-					name: "whitespace",
-					ignore: true,
-					regexp: /^[ \t]+/
-				};
-			}
-		}, {
-			key: "whitespaceWithNewlines",
-			value: function whitespaceWithNewlines() {
-				return {
-					name: "whitespace",
-					ignore: true,
-					regexp: /^[ \t\r\n]+/
-				};
-			}
-		}, {
-			key: "real",
-			value: function real() {
-				return {
-					name: "real number",
-					regexp: /^X/,
-					role: ["constant", "numeric"]
-				};
-			}
-		}, {
-			key: "comma",
-			value: function comma() {
-				return this.constant(",", "comma", ["punctuation"]);
-			}
-		}, {
-			key: "period",
-			value: function period() {
-				return this.constant(".", "period", ["punctuation"]);
-			}
-		}, {
-			key: "star",
-			value: function star() {
-				return this.constant("*", "star", ["punctuation"]);
-			}
-		}, {
-			key: "colon",
-			value: function colon() {
-				return this.constant(":", "colon", ["punctuation"]);
-			}
-		}, {
-			key: "openParen",
-			value: function openParen() {
-				return this.constant("(", "open paren", ["punctuation"]);
-			}
-		}, {
-			key: "closeParen",
-			value: function closeParen() {
-				return this.constant(")", "close paren", ["punctuation"]);
-			}
-		}, {
-			key: "openBracket",
-			value: function openBracket() {
-				return this.constant("{", "open bracket", ["punctuation"]);
-			}
-		}, {
-			key: "closeBracket",
-			value: function closeBracket() {
-				return this.constant("}", "close bracket", ["punctuation"]);
-			}
-		}, {
-			key: "openSquareBracket",
-			value: function openSquareBracket() {
-				return this.constant("[", "open square bracket", ["punctuation"]);
-			}
-		}, {
-			key: "closeSquareBracket",
-			value: function closeSquareBracket() {
-				return this.constant("]", "close square bracket", ["punctuation"]);
-			}
-		}, {
-			key: "JsonString",
-			value: function JsonString() {
-				return {
-					name: "string",
-					regexp: /"(?:[^"\\]|\\.)*"/,
-					consume: function consume(remaining) {
-						var fail = { success: false };
-						if (remaining.indexOf('"') !== 0) {
-							return fail;
-						}
-
-						var content = '';
-						var pos = 1;
-						var ch;
-						var finished = false;
-						do {
-							ch = remaining[pos];
-							pos += 1;
-
-							switch (ch) {
-								case '"':
-									finished = true;
-									break;
-								case '\\':
-									var ch2 = remaining[pos];
-									pos += 1;
-									switch (ch2) {
-										case '"':
-											return fail;
-										case "t":
-											content += "\t";break;
-										case "r":
-											content += "\r";break;
-										case "n":
-											content += "\n";break;
-										case "u":
-											var unicodeDigits = remaining.substr(pos, 4);
-											if (unicodeDigits.length != 4 || !/\d{4}/.test(unicodeDigits)) {
-												content += "\\u";
-											} else {
-												pos += 4;
-												var codePoint = parseInt(unicodeDigits, 10);
-												var codePointString = String.fromCharCode(codePoint);
-												content += codePointString;
-											}
-											break;
-										default:
-											// something like \q, which doesn't mean anything
-											return fail;
-									}
-									break;
-								default:
-									content += ch;
-									break;
-							}
-						} while (!finished);
-
-						var consumed = remaining.substring(0, pos);
-
-						var successResult = {
-							success: true,
-							consumed: consumed,
-							content: content
-						};
-						return successResult;
-					}
-				};
-			}
-		}]);
-
-		return StandardTokenTypes;
-	}();
-
-	var Parser = function () {
-		function Parser() {
-			_classCallCheck(this, Parser);
-		}
-
-		_createClass(Parser, [{
-			key: "initialize",
-			value: function initialize(tokens) {
-				if (!tokens) {
-					throw new ParserException("No tokens provided to the parser");
-				}
-
-				if (!(tokens instanceof Array)) {
-					throw new ParserException("A non-array was provided to the parser instead of a token array");
-				}
-
-				this.tokens = tokens;
-			}
-		}, {
-			key: "la1",
-			value: function la1(tokenType) {
-				if (this.eof()) {
-					throw new ParserException("No tokens available");
-				}
-
-				return this.tokens[0].type == tokenType;
-			}
-		}, {
-			key: "match",
-			value: function match(tokenType) {
-
-				if (this.eof()) {
-					throw new ParserException("Expected " + tokenType + " but found EOF");
-				}
-
-				if (!this.la1(tokenType)) {
-					throw new ParserException("Expected " + tokenType + " but found " + this.tokens[0].type + " at l" + this.tokens[0].line + "." + this.tokens[0].character);
-				}
-
-				return this.tokens.shift();
-			}
-		}, {
-			key: "eof",
-			value: function eof() {
-				return this.tokens.length === 0;
-			}
-		}, {
-			key: "expectEof",
-			value: function expectEof() {
-				if (!this.eof()) {
-					throw new ParserException("Expected EOF but found " + this.tokens[0].type + " at l" + this.tokens[0].line + "." + this.tokens[0].character);
-				}
-			}
-		}]);
-
-		return Parser;
-	}();
-
-	var LineTracker = function () {
-		function LineTracker() {
-			_classCallCheck(this, LineTracker);
-
-			this.line = 1;
-			this.character = 1;
-			this.justSeenSlashR = false;
-		}
-
-		_createClass(LineTracker, [{
-			key: "consume",
-			value: function consume(content) {
-
-				for (var i = 0, len = content.length; i < len; i++) {
-					if (content[i] == "\r") {
-						this.line += 1;
-						this.character = 1;
-						this.justSeenSlashR = true;
-					} else if (content[i] == "\n") {
-						if (!this.justSeenSlashR) {
-							this.line += 1;
-						}
-						this.character = 1;
-						this.justSeenSlashR = false;
-					} else {
-						this.character += 1;
-						this.justSeenSlashR = false;
-					}
-				}
-			}
-		}]);
-
-		return LineTracker;
-	}();
-
-	exports.PatternDefinitionException = PatternDefinitionException;
-	exports.LexerException = LexerException;
-	exports.ParserException = ParserException;
-	exports.Lexer = Lexer;
-	exports.StandardTokenTypes = StandardTokenTypes;
-	exports.Parser = Parser;
-	exports.LineTracker = LineTracker;
-});
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "/";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/canto34.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./src/canto34.js":
+/*!************************!*\
+  !*** ./src/canto34.js ***!
+  \************************/
+/*! exports provided: PatternDefinitionException, LexerException, ParserException, Lexer, StandardTokenTypes, Parser, LineTracker */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"PatternDefinitionException\", function() { return PatternDefinitionException; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"LexerException\", function() { return LexerException; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"ParserException\", function() { return ParserException; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"Lexer\", function() { return Lexer; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"StandardTokenTypes\", function() { return StandardTokenTypes; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"Parser\", function() { return Parser; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"LineTracker\", function() { return LineTracker; });\nfunction _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }\n\nfunction _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }\n\nfunction _typeof(obj) { if (typeof Symbol === \"function\" && typeof Symbol.iterator === \"symbol\") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === \"function\" && obj.constructor === Symbol && obj !== Symbol.prototype ? \"symbol\" : typeof obj; }; } return _typeof(obj); }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === \"object\" || typeof call === \"function\")) { return call; } return _assertThisInitialized(self); }\n\nfunction _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function\"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }\n\nfunction _wrapNativeSuper(Class) { var _cache = typeof Map === \"function\" ? new Map() : undefined; _wrapNativeSuper = function _wrapNativeSuper(Class) { if (Class === null || !_isNativeFunction(Class)) return Class; if (typeof Class !== \"function\") { throw new TypeError(\"Super expression must either be null or a function\"); } if (typeof _cache !== \"undefined\") { if (_cache.has(Class)) return _cache.get(Class); _cache.set(Class, Wrapper); } function Wrapper() { return _construct(Class, arguments, _getPrototypeOf(this).constructor); } Wrapper.prototype = Object.create(Class.prototype, { constructor: { value: Wrapper, enumerable: false, writable: true, configurable: true } }); return _setPrototypeOf(Wrapper, Class); }; return _wrapNativeSuper(Class); }\n\nfunction isNativeReflectConstruct() { if (typeof Reflect === \"undefined\" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === \"function\") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }\n\nfunction _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }\n\nfunction _isNativeFunction(fn) { return Function.toString.call(fn).indexOf(\"[native code]\") !== -1; }\n\nfunction _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }\n\nfunction _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }\n\nvar util = {\n  lang: {\n    isNullOrUndefined: function isNullOrUndefined(x) {\n      if (typeof x === \"undefined\") {\n        return true;\n      }\n\n      if (x === null) {\n        return true;\n      }\n\n      return false;\n    }\n  },\n  extend: function extend() {\n    // conparable to jquery's extend\n    for (var i = 1; i < arguments.length; i++) {\n      for (var key in arguments[i]) {\n        if (arguments[i].hasOwnProperty(key)) arguments[0][key] = arguments[i][key];\n      }\n    }\n\n    return arguments[0];\n  }\n};\n\nvar PatternDefinitionException =\n/*#__PURE__*/\nfunction (_Error) {\n  _inherits(PatternDefinitionException, _Error);\n\n  function PatternDefinitionException(message) {\n    _classCallCheck(this, PatternDefinitionException);\n\n    return _possibleConstructorReturn(this, _getPrototypeOf(PatternDefinitionException).call(this, message));\n  }\n\n  return PatternDefinitionException;\n}(_wrapNativeSuper(Error));\n\nvar LexerException =\n/*#__PURE__*/\nfunction (_Error2) {\n  _inherits(LexerException, _Error2);\n\n  function LexerException(message) {\n    _classCallCheck(this, LexerException);\n\n    return _possibleConstructorReturn(this, _getPrototypeOf(LexerException).call(this, message));\n  }\n\n  return LexerException;\n}(_wrapNativeSuper(Error));\n\nvar ParserException =\n/*#__PURE__*/\nfunction (_Error3) {\n  _inherits(ParserException, _Error3);\n\n  function ParserException(message) {\n    _classCallCheck(this, ParserException);\n\n    return _possibleConstructorReturn(this, _getPrototypeOf(ParserException).call(this, message));\n  }\n\n  return ParserException;\n}(_wrapNativeSuper(Error));\n/**\nA *Lexer* takes a string and chops it into pieces. A Canto34 Lexer is a series of pattern objects, like\n\n{\n\tname: \"integer\",\n\tregexp: \"\\d+\",\n\tignore: true,\n\trole: [\"keyword\"],\n\tinterpret: function(content) {\n\t    return parseInt(content);\n\t}\n}\n**/\n\n\nvar Lexer =\n/*#__PURE__*/\nfunction () {\n  function Lexer(options) {\n    _classCallCheck(this, Lexer);\n\n    var defaults = {\n      languageName: \"unnamedlanguage\"\n    };\n    this.options = util.extend({}, defaults, options);\n    this.tokenTypes = [];\n  }\n\n  _createClass(Lexer, [{\n    key: \"addTokenType\",\n    value: function addTokenType(tokenType) {\n      if (!tokenType.name) {\n        throw new PatternDefinitionException(\"Token types must have a 'name' property\");\n      } // FOR CONSIDERATION: for some tokens, the full 'consume' is requ§red for correct interpretation\n      // (eg, JSON strings with escaped character) but a regex will do for syntax highlighting. In this\n      // situation, both are allowed but consume is used for lexing and regexp is used for language definition.\n      // if (tokenType.regexp && tokenType.consume) {\n      // \tthrow new canto34.PatternDefinitionException(\"Token types cannot have both a 'regexp' pattern and 'consume' function.\");\n      // }\n\n\n      if (!tokenType.regexp && !tokenType.consume) {\n        throw new PatternDefinitionException(\"Token types must have a 'regexp' property or a 'consume' function\");\n      }\n\n      if (tokenType.regexp && !(tokenType.regexp instanceof RegExp)) {\n        throw new PatternDefinitionException(\"Token types 'regexp' property must be an instance of RegExp\");\n      }\n\n      if (tokenType.consume && typeof tokenType.consume !== \"function\") {\n        throw new PatternDefinitionException(\"Token types 'consume' property must be a function\");\n      }\n\n      if (tokenType.interpret && typeof tokenType.interpret !== \"function\") {\n        throw new PatternDefinitionException(\"Token types 'interpret' property must be a function\");\n      }\n\n      this.tokenTypes.push(tokenType);\n    }\n  }, {\n    key: \"tokenize\",\n    value: function tokenize(content) {\n      if (content === undefined) {\n        throw new LexerException(\"No content provided\");\n      }\n\n      if (this.tokenTypes.length === 0) {\n        throw new LexerException(\"No token types defined\");\n      }\n\n      var result = [];\n      var consumed;\n      var remaining = content;\n      var tracker = new LineTracker();\n      var tokenTypeLength = this.tokenTypes.length;\n      var consumeResult;\n\n      while (remaining.length > 0) {\n        var somethingFoundThisPass = false;\n\n        for (var i = 0; i < tokenTypeLength; i++) {\n          var tokenType = this.tokenTypes[i];\n          consumeResult = undefined;\n\n          if (tokenType.consume) {\n            // must have a consume function;\n            consumeResult = tokenType.consume(remaining); // should have told us what it consumed;\n\n            if (consumeResult.success) {\n              if (remaining.indexOf(consumeResult.consumed) !== 0) {\n                throw new LexerException(\"The consume function for \" + tokenType.name + \" failed to return the start of the remaining content at \" + tracker.line + \".\" + tracker.character + \" and instead returned \" + consumeResult.consumed);\n              } else {\n                somethingFoundThisPass = true;\n                consumed = consumeResult.consumed;\n              }\n            } else {\n              continue;\n            }\n          } else {\n            var match = tokenType.regexp.exec(remaining);\n\n            if (match) {\n              // we found a token! great. What did it say? We only\n              // want to match at the start of the string\n              if (match.index === 0) {\n                somethingFoundThisPass = true;\n                consumed = match[0];\n              } else {\n                continue;\n              }\n            } else {\n              continue;\n            }\n          } //handle our new token\n\n\n          if (tokenType.interpret) {\n            content = tokenType.interpret(consumed);\n          } else if (consumeResult && !util.lang.isNullOrUndefined(consumeResult.content)) {\n            content = consumeResult.content;\n          } else {\n            content = consumed;\n          }\n\n          var token = {\n            content: content,\n            type: tokenType.name,\n            line: tracker.line,\n            character: tracker.character\n          };\n\n          if (!tokenType.ignore) {\n            result.push(token);\n          }\n\n          remaining = remaining.substring(consumed.length);\n          tracker.consume(consumed);\n          break; //This break is needed as we need to start matching from top of tokenType list\n        }\n\n        if (!somethingFoundThisPass) {\n          var userPartOfString = remaining.substring(0, 15);\n          var visibleUserPartOfString = userPartOfString.replace(\"\\r\", \"\\\\r\").replace(\"\\t\", \"\\\\t\").replace(\"\\n\", \"\\\\n\");\n          throw new LexerException(\"No viable alternative at \" + tracker.line + \".\" + tracker.character + \": '\" + visibleUserPartOfString + \"...'\");\n        }\n      }\n\n      return result;\n    }\n  }]);\n\n  return Lexer;\n}();\n\nfunction escapeRegExp(string) {\n  return string.replace(/([.*+?^=!:${}()|[\\]\\/\\\\])/g, \"\\\\$1\");\n}\n\nvar StandardTokenTypes =\n/*#__PURE__*/\nfunction () {\n  function StandardTokenTypes() {\n    _classCallCheck(this, StandardTokenTypes);\n  }\n\n  _createClass(StandardTokenTypes, null, [{\n    key: \"constant\",\n    value: function constant(literal, name, role) {\n      role = role || [\"keyword\"];\n      return {\n        name: name,\n        regexp: new RegExp(\"^\" + escapeRegExp(literal)),\n        role: role\n      };\n    }\n  }, {\n    key: \"floatingPoint\",\n    value: function floatingPoint() {\n      return {\n        name: \"floating point\",\n        regexp: /(^-?\\d*\\.\\d+)/,\n        role: [\"constant\", \"numeric\"],\n        interpret: function interpret(content) {\n          return parseFloat(content);\n        }\n      };\n    }\n  }, {\n    key: \"integer\",\n    value: function integer() {\n      return {\n        name: \"integer\",\n        regexp: /^-?\\d+/,\n        role: [\"constant\", \"numeric\"],\n        interpret: function interpret(content) {\n          return parseInt(content);\n        }\n      };\n    }\n  }, {\n    key: \"whitespace\",\n    value: function whitespace() {\n      return {\n        name: \"whitespace\",\n        ignore: true,\n        regexp: /^[ \\t]+/\n      };\n    }\n  }, {\n    key: \"whitespaceWithNewlines\",\n    value: function whitespaceWithNewlines() {\n      return {\n        name: \"whitespace\",\n        ignore: true,\n        regexp: /^[ \\t\\r\\n]+/\n      };\n    }\n  }, {\n    key: \"real\",\n    value: function real() {\n      return {\n        name: \"real number\",\n        regexp: /^X/,\n        role: [\"constant\", \"numeric\"]\n      };\n    }\n  }, {\n    key: \"comma\",\n    value: function comma() {\n      return this.constant(\",\", \"comma\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"period\",\n    value: function period() {\n      return this.constant(\".\", \"period\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"star\",\n    value: function star() {\n      return this.constant(\"*\", \"star\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"colon\",\n    value: function colon() {\n      return this.constant(\":\", \"colon\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"openParen\",\n    value: function openParen() {\n      return this.constant(\"(\", \"open paren\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"closeParen\",\n    value: function closeParen() {\n      return this.constant(\")\", \"close paren\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"openBracket\",\n    value: function openBracket() {\n      return this.constant(\"{\", \"open bracket\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"closeBracket\",\n    value: function closeBracket() {\n      return this.constant(\"}\", \"close bracket\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"openSquareBracket\",\n    value: function openSquareBracket() {\n      return this.constant(\"[\", \"open square bracket\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"closeSquareBracket\",\n    value: function closeSquareBracket() {\n      return this.constant(\"]\", \"close square bracket\", [\"punctuation\"]);\n    }\n  }, {\n    key: \"JsonString\",\n    value: function JsonString() {\n      return {\n        name: \"string\",\n        regexp: /\"(?:[^\"\\\\]|\\\\.)*\"/,\n        consume: function consume(remaining) {\n          var fail = {\n            success: false\n          };\n\n          if (remaining.indexOf('\"') !== 0) {\n            return fail;\n          }\n\n          var content = '';\n          var pos = 1;\n          var ch;\n          var finished = false;\n\n          do {\n            ch = remaining[pos];\n            pos += 1;\n\n            switch (ch) {\n              case '\"':\n                finished = true;\n                break;\n\n              case '\\\\':\n                var ch2 = remaining[pos];\n                pos += 1;\n\n                switch (ch2) {\n                  case '\"':\n                    return fail;\n\n                  case \"t\":\n                    content += \"\\t\";\n                    break;\n\n                  case \"r\":\n                    content += \"\\r\";\n                    break;\n\n                  case \"n\":\n                    content += \"\\n\";\n                    break;\n\n                  case \"u\":\n                    var unicodeDigits = remaining.substr(pos, 4);\n\n                    if (unicodeDigits.length != 4 || !/\\d{4}/.test(unicodeDigits)) {\n                      content += \"\\\\u\";\n                    } else {\n                      pos += 4;\n                      var codePoint = parseInt(unicodeDigits, 10);\n                      var codePointString = String.fromCharCode(codePoint);\n                      content += codePointString;\n                    }\n\n                    break;\n\n                  default:\n                    // something like \\q, which doesn't mean anything\n                    return fail;\n                }\n\n                break;\n\n              default:\n                content += ch;\n                break;\n            }\n          } while (!finished);\n\n          var consumed = remaining.substring(0, pos);\n          var successResult = {\n            success: true,\n            consumed: consumed,\n            content: content\n          };\n          return successResult;\n        }\n      };\n    }\n  }]);\n\n  return StandardTokenTypes;\n}();\n\nvar Parser =\n/*#__PURE__*/\nfunction () {\n  function Parser() {\n    _classCallCheck(this, Parser);\n  }\n\n  _createClass(Parser, [{\n    key: \"initialize\",\n    value: function initialize(tokens) {\n      if (!tokens) {\n        throw new ParserException(\"No tokens provided to the parser\");\n      }\n\n      if (!(tokens instanceof Array)) {\n        throw new ParserException(\"A non-array was provided to the parser instead of a token array\");\n      }\n\n      this.tokens = tokens;\n    }\n  }, {\n    key: \"la1\",\n    value: function la1(tokenType) {\n      if (this.eof()) {\n        throw new ParserException(\"No tokens available\");\n      }\n\n      return this.tokens[0].type == tokenType;\n    }\n  }, {\n    key: \"match\",\n    value: function match(tokenType) {\n      if (this.eof()) {\n        throw new ParserException(\"Expected \" + tokenType + \" but found EOF\");\n      }\n\n      if (!this.la1(tokenType)) {\n        throw new ParserException(\"Expected \" + tokenType + \" but found \" + this.tokens[0].type + \" at l\" + this.tokens[0].line + \".\" + this.tokens[0].character);\n      }\n\n      return this.tokens.shift();\n    }\n  }, {\n    key: \"eof\",\n    value: function eof() {\n      return this.tokens.length === 0;\n    }\n  }, {\n    key: \"expectEof\",\n    value: function expectEof() {\n      if (!this.eof()) {\n        throw new ParserException(\"Expected EOF but found \" + this.tokens[0].type + \" at l\" + this.tokens[0].line + \".\" + this.tokens[0].character);\n      }\n    }\n  }]);\n\n  return Parser;\n}();\n\nvar LineTracker =\n/*#__PURE__*/\nfunction () {\n  function LineTracker() {\n    _classCallCheck(this, LineTracker);\n\n    this.line = 1;\n    this.character = 1;\n    this.justSeenSlashR = false;\n  }\n\n  _createClass(LineTracker, [{\n    key: \"consume\",\n    value: function consume(content) {\n      for (var i = 0, len = content.length; i < len; i++) {\n        if (content[i] == \"\\r\") {\n          this.line += 1;\n          this.character = 1;\n          this.justSeenSlashR = true;\n        } else if (content[i] == \"\\n\") {\n          if (!this.justSeenSlashR) {\n            this.line += 1;\n          }\n\n          this.character = 1;\n          this.justSeenSlashR = false;\n        } else {\n          this.character += 1;\n          this.justSeenSlashR = false;\n        }\n      }\n    }\n  }]);\n\n  return LineTracker;\n}();\n\n\n\n//# sourceURL=webpack:///./src/canto34.js?");
+
+/***/ })
+
+/******/ });

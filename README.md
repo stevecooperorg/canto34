@@ -152,7 +152,7 @@ This adds a host of `to*()` methods, for example;
 			{ content: "a", type:"b", line:1, character:2}
 		]).toHaveTokenTypes(["y", "b"]);
 
-Check out `canto34-expect.spec.js` to see some examples, but basically;
+Check out `canto34-expect.test.js` to see some examples, but basically;
 
 - `toHaveTokenTypes(expected)` -- the array of tokens has particular types. So you can say things like `expect(lexer.tokenize("int x = 1")).toHaveTokenTypes(['type', 'identifier', 'equals', 'number']);
 - `toHaveTokenContent(expected)` -- the array of tokens has particular content. So you can say things like `expect(lexer.tokenize("int x = 1")).toHaveTokenTypes(['int', 'x', '=', '1']);

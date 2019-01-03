@@ -1,7 +1,4 @@
 import * as canto34 from '../src/canto34';
-import expect, { createSpy, spyOn, isSpy } from 'expect';
-
-expect.extend(canto34.expectMatchers);
 
 var lexer = new canto34.Lexer();
 var types = canto34.StandardTokenTypes;
@@ -15,8 +12,6 @@ lexer.addTokenType(types.openSquareBracket());
 lexer.addTokenType(types.closeSquareBracket());
 lexer.addTokenType(types.openParen());
 lexer.addTokenType(types.closeParen());
-
-var parser = new canto34.Parser();
 
 describe("The JSON lexer", function() {
 	it("should parse all the token types", function() {
