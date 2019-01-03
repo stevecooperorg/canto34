@@ -3,7 +3,7 @@ module.exports = {
     "canto34": './src/canto34.js',
     "canto34-expect": './src/canto34-expect.js',
     "canto34-syntax": './src/canto34-syntax.js'
-  } ,
+  },
   module: {
     rules: [
       {

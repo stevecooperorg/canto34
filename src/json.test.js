@@ -1,4 +1,4 @@
-import * as canto34 from '../src/canto34';
+import * as canto34 from "../src/canto34";
 
 var lexer = new canto34.Lexer();
 var types = canto34.StandardTokenTypes;
@@ -14,14 +14,20 @@ lexer.addTokenType(types.openParen());
 lexer.addTokenType(types.closeParen());
 
 describe("The JSON lexer", function() {
-	it("should parse all the token types", function() {
-		var input = "( ) { } [ ] 123 -123 1.234 -1.234";
-		var tokens = lexer.tokenize(input);
-		expect(tokens).toHaveTokenTypes([
-			'open paren', 'close paren', 
-			'open bracket', 'close bracket', 
-			'open square bracket', 'close square bracket', 
-			'integer', 'integer', 
-			'floating point', 'floating point']);
-	});
+  it("should parse all the token types", function() {
+    var input = "( ) { } [ ] 123 -123 1.234 -1.234";
+    var tokens = lexer.tokenize(input);
+    expect(tokens).toHaveTokenTypes([
+      "open paren",
+      "close paren",
+      "open bracket",
+      "close bracket",
+      "open square bracket",
+      "close square bracket",
+      "integer",
+      "integer",
+      "floating point",
+      "floating point"
+    ]);
+  });
 });
