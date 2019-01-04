@@ -1,10 +1,10 @@
 import * as canto34 from "./canto34";
 
-describe("When adding token types to the lexer,", function() {
+describe("When adding token types to the lexer,", () => {
   let lexer;
   let tokenType;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lexer = new canto34.Lexer();
     tokenType = {
       name: "name",
@@ -12,15 +12,15 @@ describe("When adding token types to the lexer,", function() {
     };
   });
 
-  it("requires token types to have names", function() {
-    expect(function() {
+  it("requires token types to have names", () => {
+    expect(() => {
       delete tokenType.name;
       lexer.addTokenType(tokenType);
     }).toThrow("Token types must have a 'name' property");
   });
 
-  it("requires token types to have regexps", function() {
-    expect(function() {
+  it("requires token types to have regexps", () => {
+    expect(() => {
       delete tokenType.regexp;
       lexer.addTokenType(tokenType);
     }).toThrow(
@@ -28,39 +28,39 @@ describe("When adding token types to the lexer,", function() {
     );
   });
 
-  it("does not require a regexp if a consume function is available", function() {
-    expect(function() {
+  it("does not require a regexp if a consume function is available", () => {
+    expect(() => {
       delete tokenType.regexp;
       tokenType.consume = function() {};
       lexer.addTokenType(tokenType);
     }).not.toThrow();
   });
 
-  it("requires the regexp property to be a regexp", function() {
-    expect(function() {
+  it("requires the regexp property to be a regexp", () => {
+    expect(() => {
       tokenType.regexp = "not a regexp";
       lexer.addTokenType(tokenType);
     }).toThrow("Token types 'regexp' property must be an instance of RegExp");
   });
 
-  it("allows the consume property to be a function", function() {
-    expect(function() {
+  it("allows the consume property to be a function", () => {
+    expect(() => {
       delete tokenType.regexp;
       tokenType.consume = function() {};
       lexer.addTokenType(tokenType);
     }).not.toThrow();
   });
 
-  it("requires the consume property to be a function", function() {
-    expect(function() {
+  it("requires the consume property to be a function", () => {
+    expect(() => {
       delete tokenType.regexp;
       tokenType.consume = "not a function";
       lexer.addTokenType(tokenType);
     }).toThrow("Token types 'consume' property must be a function");
   });
 
-  it("allows an interpret property to be a function", function() {
-    expect(function() {
+  it("allows an interpret property to be a function", () => {
+    expect(() => {
       tokenType.interpret = function() {
         return 0;
       };
@@ -68,35 +68,35 @@ describe("When adding token types to the lexer,", function() {
     }).not.toThrow();
   });
 
-  it("requires the interpret property to be a function", function() {
-    expect(function() {
+  it("requires the interpret property to be a function", () => {
+    expect(() => {
       tokenType.interpret = "not a function";
       lexer.addTokenType(tokenType);
     }).toThrow("Token types 'interpret' property must be a function");
   });
 });
 
-describe("When lexing tokens", function() {
+describe("When lexing tokens", () => {
   let lexer;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lexer = new canto34.Lexer();
   });
 
-  it("requires content to be passed", function() {
-    expect(function() {
+  it("requires content to be passed", () => {
+    expect(() => {
       lexer.tokenize(undefined);
     }).toThrow("No content provided");
   });
 
-  it("requires at least one token type", function() {
-    expect(function() {
+  it("requires at least one token type", () => {
+    expect(() => {
       // we've not added any token types
       lexer.tokenize("something to tokenise");
     }).toThrow("No token types defined");
   });
 
-  it("can tokenize a simple example", function() {
+  it("can tokenize a simple example", () => {
     lexer.addTokenType({
       name: "A",
       regexp: /a+/
@@ -107,15 +107,30 @@ describe("When lexing tokens", function() {
       regexp: /b+/
     });
 
-    let tokens = lexer.tokenize("aaabbbaaa");
+    const tokens = lexer.tokenize("aaabbbaaa");
     expect(tokens).toEqual([
-      { content: "aaa", type: "A", character: 1, line: 1 },
-      { content: "bbb", type: "B", character: 4, line: 1 },
-      { content: "aaa", type: "A", character: 7, line: 1 }
+      {
+        content: "aaa",
+        type: "A",
+        character: 1,
+        line: 1
+      },
+      {
+        content: "bbb",
+        type: "B",
+        character: 4,
+        line: 1
+      },
+      {
+        content: "aaa",
+        type: "A",
+        character: 7,
+        line: 1
+      }
     ]);
   });
 
-  it("allows the use of an ignore flag in token types", function() {
+  it("allows the use of an ignore flag in token types", () => {
     lexer.addTokenType({
       name: "whitespace",
       regexp: /[ \t]+/,
@@ -128,25 +143,40 @@ describe("When lexing tokens", function() {
       ignore: false
     });
 
-    let tokens = lexer.tokenize("aa bb cc");
+    const tokens = lexer.tokenize("aa bb cc");
     expect(tokens).toEqual([
-      { content: "aa", type: "word", line: 1, character: 1 },
-      { content: "bb", type: "word", line: 1, character: 4 },
-      { content: "cc", type: "word", line: 1, character: 7 }
+      {
+        content: "aa",
+        type: "word",
+        line: 1,
+        character: 1
+      },
+      {
+        content: "bb",
+        type: "word",
+        line: 1,
+        character: 4
+      },
+      {
+        content: "cc",
+        type: "word",
+        line: 1,
+        character: 7
+      }
     ]);
   });
 
-  it("reports when there is no matching pattern", function() {
+  it("reports when there is no matching pattern", () => {
     lexer.addTokenType({
       name: "lettersOnly",
       regexp: /[a-z]+/
     });
-    expect(function() {
+    expect(() => {
       lexer.tokenize("123");
     }).toThrow("No viable alternative at 1.1: '123...'");
   });
 
-  it("allows the use of custom consumers", function() {
+  it("allows the use of custom consumers", () => {
     lexer.addTokenType({
       name: "custom",
       consume: function anyThreeCharacters(remaining) {
@@ -157,15 +187,30 @@ describe("When lexing tokens", function() {
       }
     });
 
-    let tokens = lexer.tokenize("abcdefg");
+    const tokens = lexer.tokenize("abcdefg");
     expect(tokens).toEqual([
-      { content: "abc", type: "custom", line: 1, character: 1 },
-      { content: "def", type: "custom", line: 1, character: 4 },
-      { content: "g", type: "custom", line: 1, character: 7 }
+      {
+        content: "abc",
+        type: "custom",
+        line: 1,
+        character: 1
+      },
+      {
+        content: "def",
+        type: "custom",
+        line: 1,
+        character: 4
+      },
+      {
+        content: "g",
+        type: "custom",
+        line: 1,
+        character: 7
+      }
     ]);
   });
 
-  it("protects against badly-consuming consume functions", function() {
+  it("protects against badly-consuming consume functions", () => {
     lexer.addTokenType({
       name: "custom",
       consume: function broken(remaining) {
@@ -176,33 +221,38 @@ describe("When lexing tokens", function() {
       }
     });
 
-    expect(function() {
+    expect(() => {
       lexer.tokenize("abcdefg");
     }).toThrow(
       "The consume function for custom failed to return the start of the remaining content at 1.1 and instead returned xxx"
     );
   });
 
-  it("allows the use of custom interpreters", function() {
+  it("allows the use of custom interpreters", () => {
     lexer.addTokenType({
       name: "integer",
       regexp: /\d+/,
-      interpret: function(content) {
+      interpret(content) {
         return parseInt(content);
       }
     });
 
-    let tokens = lexer.tokenize("123");
+    const tokens = lexer.tokenize("123");
     expect(tokens).toEqual([
-      { content: 123, type: "integer", line: 1, character: 1 }
+      {
+        content: 123,
+        type: "integer",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 
-  it("ensures that custom interpeters track position correctly", function() {
+  it("ensures that custom interpeters track position correctly", () => {
     lexer.addTokenType({
       name: "threeAs",
       regexp: /aaa/,
-      interpret: function(content) {
+      interpret(content) {
         return "A";
       }
     });
@@ -210,229 +260,300 @@ describe("When lexing tokens", function() {
     lexer.addTokenType({
       name: "threeBs",
       regexp: /bbb/,
-      interpret: function(content) {
+      interpret(content) {
         return "B";
       }
     });
 
-    let tokens = lexer.tokenize("aaabbb");
+    const tokens = lexer.tokenize("aaabbb");
     expect(tokens).toEqual([
-      { content: "A", type: "threeAs", line: 1, character: 1 },
-      { content: "B", type: "threeBs", line: 1, character: 4 }
+      {
+        content: "A",
+        type: "threeAs",
+        line: 1,
+        character: 1
+      },
+      {
+        content: "B",
+        type: "threeBs",
+        line: 1,
+        character: 4
+      }
     ]);
   });
 });
 
-describe("the lexer standard integer type", function() {
-  let lexer = new canto34.Lexer();
+describe("the lexer standard integer type", () => {
+  const lexer = new canto34.Lexer();
   lexer.addTokenType(canto34.StandardTokenTypes.integer());
 
-  it("should parse integers", function() {
-    let tokens = lexer.tokenize("123");
+  it("should parse integers", () => {
+    const tokens = lexer.tokenize("123");
     expect(tokens).toEqual([
-      { content: 123, type: "integer", line: 1, character: 1 }
+      {
+        content: 123,
+        type: "integer",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 
-  it("should parse negative integers", function() {
-    let tokens = lexer.tokenize("-123");
+  it("should parse negative integers", () => {
+    const tokens = lexer.tokenize("-123");
     expect(tokens).toEqual([
-      { content: -123, type: "integer", line: 1, character: 1 }
+      {
+        content: -123,
+        type: "integer",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 });
 
-describe("the lexer standard floating point type", function() {
-  let lexer = new canto34.Lexer();
+describe("the lexer standard floating point type", () => {
+  const lexer = new canto34.Lexer();
   lexer.addTokenType(canto34.StandardTokenTypes.floatingPoint());
 
-  it("should parse floating points", function() {
-    let tokens = lexer.tokenize("123.45");
+  it("should parse floating points", () => {
+    const tokens = lexer.tokenize("123.45");
     expect(tokens).toEqual([
-      { content: 123.45, type: "floating point", line: 1, character: 1 }
+      {
+        content: 123.45,
+        type: "floating point",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 
-  it("should parse floating points without leading number", function() {
-    let tokens = lexer.tokenize(".5");
+  it("should parse floating points without leading number", () => {
+    const tokens = lexer.tokenize(".5");
     expect(tokens).toEqual([
-      { content: 0.5, type: "floating point", line: 1, character: 1 }
+      {
+        content: 0.5,
+        type: "floating point",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 
-  it("should parse negative floating points", function() {
-    let tokens = lexer.tokenize("-123.45");
+  it("should parse negative floating points", () => {
+    const tokens = lexer.tokenize("-123.45");
     expect(tokens).toEqual([
-      { content: -123.45, type: "floating point", line: 1, character: 1 }
+      {
+        content: -123.45,
+        type: "floating point",
+        line: 1,
+        character: 1
+      }
     ]);
   });
 });
 
-describe("the lexer standard JSON string type", function() {
-  let lexer = new canto34.Lexer();
+describe("the lexer standard JSON string type", () => {
+  const lexer = new canto34.Lexer();
   lexer.addTokenType(canto34.StandardTokenTypes.JsonString());
 
-  it("should parse an empty string", function() {
-    let tokens = lexer.tokenize('""');
+  it("should parse an empty string", () => {
+    const tokens = lexer.tokenize('""');
     expect(tokens).toHaveTokenContent([""]);
   });
 
-  it("should parse a straightforward string", function() {
-    let tokens = lexer.tokenize('"abc"');
+  it("should parse a straightforward string", () => {
+    const tokens = lexer.tokenize('"abc"');
     expect(tokens).toHaveTokenContent(["abc"]);
   });
 
-  it("should parse a \\t escape character", function() {
-    let tokens = lexer.tokenize('"a\\tc"');
+  it("should parse a \\t escape character", () => {
+    const tokens = lexer.tokenize('"a\\tc"');
     expect(tokens).toHaveTokenContent(["a\tc"]);
   });
 
-  it("should parse a \\r escape character", function() {
-    let tokens = lexer.tokenize('"a\\rc"');
+  it("should parse a \\r escape character", () => {
+    const tokens = lexer.tokenize('"a\\rc"');
     expect(tokens).toHaveTokenContent(["a\rc"]);
   });
 
-  it("should parse a \\n escape character", function() {
-    let tokens = lexer.tokenize('"a\\nc"');
+  it("should parse a \\n escape character", () => {
+    const tokens = lexer.tokenize('"a\\nc"');
     expect(tokens).toHaveTokenContent(["a\nc"]);
   });
 
-  it("should parse unicode \\u0000 escape characters", function() {
-    let tokens = lexer.tokenize('"\\u0065"'); // unicode 'A'
+  it("should parse unicode \\u0000 escape characters", () => {
+    const tokens = lexer.tokenize('"\\u0065"'); // unicode 'A'
     expect(tokens).toHaveTokenContent(["A"]);
   });
 
-  it("should ignore not-really-unicode like \\u00 foo ", function() {
-    let tokens = lexer.tokenize('"\\u00 foo"');
+  it("should ignore not-really-unicode like \\u00 foo ", () => {
+    const tokens = lexer.tokenize('"\\u00 foo"');
     expect(tokens).toHaveTokenContent(["\\u00 foo"]);
   });
 
-  it("should fail to recognise \\ at the end of a string", function() {
-    expect(function() {
+  it("should fail to recognise \\ at the end of a string", () => {
+    expect(() => {
       lexer.tokenize('"\\"');
     }).toThrow("No viable alternative at 1.1: '\"\\\"...'");
   });
 
-  it("should not recognise unknown escaped character, like \\q", function() {
-    expect(function() {
+  it("should not recognise unknown escaped character, like \\q", () => {
+    expect(() => {
       lexer.tokenize('"\\q"');
     }).toThrow("No viable alternative at 1.1: '\"\\q\"...'");
   });
 });
 
-describe("the lexer standard whitespace type", function() {
+describe("the lexer standard whitespace type", () => {
   let lexer;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lexer = new canto34.Lexer();
   });
 
-  it("should default to skipping whitespace tokens", function() {
+  it("should default to skipping whitespace tokens", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
     lexer.addTokenType({ name: "letters", regexp: /^[a-z]+/ });
-    let tokens = lexer.tokenize("  \t  abc \t  ");
+    const tokens = lexer.tokenize("  \t  abc \t  ");
     expect(tokens).toEqual([
-      { content: "abc", type: "letters", line: 1, character: 6 }
+      {
+        content: "abc",
+        type: "letters",
+        line: 1,
+        character: 6
+      }
     ]);
   });
 
-  it("will produce whitespace tokens spanning more than one character", function() {
-    let nonIgnoredWhitespace = canto34.StandardTokenTypes.whitespace();
+  it("will produce whitespace tokens spanning more than one character", () => {
+    const nonIgnoredWhitespace = canto34.StandardTokenTypes.whitespace();
     nonIgnoredWhitespace.ignore = false;
 
     lexer.addTokenType(nonIgnoredWhitespace);
     lexer.addTokenType({ name: "letters", regexp: /^[a-z]+/ });
-    let tokens = lexer.tokenize(" \t abc \t ");
+    const tokens = lexer.tokenize(" \t abc \t ");
     expect(tokens).toEqual([
-      { content: " \t ", type: "whitespace", line: 1, character: 1 },
-      { content: "abc", type: "letters", line: 1, character: 4 },
-      { content: " \t ", type: "whitespace", line: 1, character: 7 }
+      {
+        content: " \t ",
+        type: "whitespace",
+        line: 1,
+        character: 1
+      },
+      {
+        content: "abc",
+        type: "letters",
+        line: 1,
+        character: 4
+      },
+      {
+        content: " \t ",
+        type: "whitespace",
+        line: 1,
+        character: 7
+      }
     ]);
   });
 
-  it("does not recognise newlines as part of the token", function() {
+  it("does not recognise newlines as part of the token", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.whitespace());
-    expect(function() {
+    expect(() => {
       lexer.tokenize("\r");
     }).toThrow("No viable alternative at 1.1: '\\r...'");
 
-    expect(function() {
+    expect(() => {
       lexer.tokenize("\n");
     }).toThrow("No viable alternative at 1.1: '\\n...'");
   });
 });
 
-describe("the lexer standard whitespace and newline type", function() {
+describe("the lexer standard whitespace and newline type", () => {
   let lexer;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lexer = new canto34.Lexer();
   });
 
-  it("should default to skipping whitespace tokens", function() {
+  it("should default to skipping whitespace tokens", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
     lexer.addTokenType({ name: "letters", regexp: /^[a-z]+/ });
-    let tokens = lexer.tokenize("  \r\n\t  abc \r\n\t  ");
+    const tokens = lexer.tokenize("  \r\n\t  abc \r\n\t  ");
     expect(tokens).toEqual([
-      { content: "abc", type: "letters", line: 2, character: 4 }
+      {
+        content: "abc",
+        type: "letters",
+        line: 2,
+        character: 4
+      }
     ]);
   });
 
-  it("will produce whitespace tokens spanning more than one character", function() {
-    let nonIgnoredWhitespace = canto34.StandardTokenTypes.whitespaceWithNewlines();
+  it("will produce whitespace tokens spanning more than one character", () => {
+    const nonIgnoredWhitespace = canto34.StandardTokenTypes.whitespaceWithNewlines();
     nonIgnoredWhitespace.ignore = false;
 
     lexer.addTokenType(nonIgnoredWhitespace);
     lexer.addTokenType({ name: "letters", regexp: /^[a-z]+/ });
-    let tokens = lexer.tokenize(" \t abc \t ");
+    const tokens = lexer.tokenize(" \t abc \t ");
     expect(tokens).toEqual([
-      { content: " \t ", type: "whitespace", line: 1, character: 1 },
-      { content: "abc", type: "letters", line: 1, character: 4 },
-      { content: " \t ", type: "whitespace", line: 1, character: 7 }
+      {
+        content: " \t ",
+        type: "whitespace",
+        line: 1,
+        character: 1
+      },
+      {
+        content: "abc",
+        type: "letters",
+        line: 1,
+        character: 4
+      },
+      {
+        content: " \t ",
+        type: "whitespace",
+        line: 1,
+        character: 7
+      }
     ]);
   });
 
-  it("should recognise newlines as part of the token", function() {
+  it("should recognise newlines as part of the token", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.whitespaceWithNewlines());
-    expect(function() {
-      return lexer.tokenize("\r");
-    }).not.toThrow();
+    expect(() => lexer.tokenize("\r")).not.toThrow();
 
-    expect(function() {
-      return lexer.tokenize("\n");
-    }).not.toThrow();
+    expect(() => lexer.tokenize("\n")).not.toThrow();
   });
 });
 
-describe("the lexer standard types", function() {
+describe("the lexer standard types", () => {
   let lexer;
-  beforeEach(function() {
+  beforeEach(() => {
     lexer = new canto34.Lexer();
   });
 
-  it("should recognise commas", function() {
+  it("should recognise commas", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.comma());
     expect(lexer.tokenize(",")).toHaveTokenTypes(["comma"]);
   });
 
-  it("should recognise periods", function() {
+  it("should recognise periods", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.period());
     expect(lexer.tokenize(".")).toHaveTokenTypes(["period"]);
   });
 
-  it("should recognise colons", function() {
+  it("should recognise colons", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.colon());
     expect(lexer.tokenize(":")).toHaveTokenTypes(["colon"]);
   });
 
-  it("should recognise star", function() {
+  it("should recognise star", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.star());
     expect(lexer.tokenize("*")).toHaveTokenTypes(["star"]);
   });
 
-  it("should recognise real numbers", function() {});
+  it("should recognise real numbers", () => {});
 
-  it("should recognise several brackets and parens", function() {
+  it("should recognise several brackets and parens", () => {
     lexer.addTokenType(canto34.StandardTokenTypes.openBracket());
     lexer.addTokenType(canto34.StandardTokenTypes.closeBracket());
     lexer.addTokenType(canto34.StandardTokenTypes.openSquareBracket());
@@ -450,31 +571,31 @@ describe("the lexer standard types", function() {
   });
 });
 
-describe("the parser", function() {
-  it("should allow initialization from an array", function() {
-    let parser = new canto34.Parser();
+describe("the parser", () => {
+  it("should allow initialization from an array", () => {
+    const parser = new canto34.Parser();
     parser.initialize([]);
     expect(parser.tokens.length).toBe(0);
   });
 
-  it("should not allow initialization from undefined", function() {
-    let parser = new canto34.Parser();
-    expect(function() {
+  it("should not allow initialization from undefined", () => {
+    const parser = new canto34.Parser();
+    expect(() => {
       parser.initialize();
     }).toThrow("No tokens provided to the parser");
   });
 
-  it("should not allow initialization from non-arrays", function() {
-    let parser = new canto34.Parser();
-    expect(function() {
+  it("should not allow initialization from non-arrays", () => {
+    const parser = new canto34.Parser();
+    expect(() => {
       parser.initialize("hello");
     }).toThrow(
       "A non-array was provided to the parser instead of a token array"
     );
   });
 
-  it("should allow lookahead checks without consuming tokens", function() {
-    let parser = new canto34.Parser();
+  it("should allow lookahead checks without consuming tokens", () => {
+    const parser = new canto34.Parser();
     parser.initialize([
       { content: "token1", type: "foo", position: 0 },
       { content: "token2", type: "bar", position: 0 }
@@ -483,8 +604,8 @@ describe("the parser", function() {
     expect(parser.la1("foo")).toBe(true);
   });
 
-  it("should allow matching which consumies tokens", function() {
-    let parser = new canto34.Parser();
+  it("should allow matching which consumies tokens", () => {
+    const parser = new canto34.Parser();
     parser.initialize([
       { content: "token1", type: "foo", position: 0 },
       { content: "token2", type: "bar", position: 0 }
@@ -501,84 +622,89 @@ describe("the parser", function() {
     });
   });
 
-  it("should throw when matching the wrong type", function() {
-    let parser = new canto34.Parser();
+  it("should throw when matching the wrong type", () => {
+    const parser = new canto34.Parser();
     parser.initialize([
-      { content: "token1", type: "foo", line: 1, character: 1 }
+      {
+        content: "token1",
+        type: "foo",
+        line: 1,
+        character: 1
+      }
     ]);
-    expect(function() {
+    expect(() => {
       parser.match("bar");
     }).toThrow("Expected bar but found foo at l1.1");
   });
 
-  it("should throw when looking ahead and no tokens are available", function() {
-    let parser = new canto34.Parser();
+  it("should throw when looking ahead and no tokens are available", () => {
+    const parser = new canto34.Parser();
     parser.initialize([]);
-    expect(function() {
+    expect(() => {
       parser.la1("bar");
     }).toThrow("No tokens available");
   });
 
-  it("should throw when matching and no tokens are available", function() {
-    let parser = new canto34.Parser();
+  it("should throw when matching and no tokens are available", () => {
+    const parser = new canto34.Parser();
     parser.initialize([]);
-    expect(function() {
+    expect(() => {
       parser.match("bar");
     }).toThrow("Expected bar but found EOF");
   });
 
-  it("should recognise the end of input as eof", function() {
-    let parser = new canto34.Parser();
+  it("should recognise the end of input as eof", () => {
+    const parser = new canto34.Parser();
     parser.initialize([{ type: "foo" }]);
     expect(parser.eof()).toBe(false);
     parser.match("foo");
     expect(parser.eof()).toBe(true);
   });
 
-  it("should throw correctly if there are tokens and expectEof() called", function() {
-    let parser = new canto34.Parser();
+  it("should throw correctly if there are tokens and expectEof() called", () => {
+    const parser = new canto34.Parser();
     parser.initialize([{ type: "foo" }]);
     expect(parser.expectEof.bind(parser)).toThrow();
   });
 
-  it("should not throw if there are no tokens and expectEof() called", function() {
-    let parser = new canto34.Parser();
+  it("should not throw if there are no tokens and expectEof() called", () => {
+    const parser = new canto34.Parser();
     parser.initialize([]);
     expect(parser.expectEof.bind(parser)).not.toThrow();
   });
 });
 
-describe("canto34.LineTracker", function() {
+describe("canto34.LineTracker", () => {
   let tracker;
-  beforeEach(function() {
+  beforeEach(() => {
     tracker = new canto34.LineTracker();
   });
 
-  it("should initialize to 1,1", function() {
+  it("should initialize to 1,1", () => {
     expect(tracker).toBeAt(1, 1);
   });
 
-  it("should track characters in the first line", function() {
+  it("should track characters in the first line", () => {
     tracker.consume("1234567890");
     expect(tracker).toBeAt(1, 11);
   });
 
-  it("should track \\r", function() {
+  it("should track \\r", () => {
     tracker.consume("foo\rbar");
     expect(tracker).toBeAt(2, 4);
   });
 
-  it("should track \\n", function() {
+  it("should track \\n", () => {
     tracker.consume("foo\nbar");
     expect(tracker).toBeAt(2, 4);
   });
 
-  it("should track \\r\\n", function() {
+  it("should track \\r\\n", () => {
     tracker.consume("foo\r\nbar");
     expect(tracker).toBeAt(2, 4);
   });
 
-  it("should track \\r, \\n, and both together in complex situations", function() {
+  it("should track \\r, \\n, and both together in complex situations", () => {
     tracker.consume("\r");
     expect(tracker).toBeAt(2, 1);
 

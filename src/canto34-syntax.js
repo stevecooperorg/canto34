@@ -3,7 +3,7 @@ import { canto34 } from "./canto34";
 
 class tmLanguage {
   static generateTmLanguageDefinition(lexer) {
-    var languageDef = {
+    const languageDef = {
       name: lexer.options.languageName,
       patterns: []
     };
@@ -12,9 +12,9 @@ class tmLanguage {
       // convert the regex back to a string; clean off leading and trailing slashes,
       // and leading ^ characters, which are meaningless.
       if (!tt.regexp) {
-        throw "no regex for " + tt.name;
+        throw `no regex for ${tt.name}`;
       }
-      var regexPattern = tt.regexp.toString();
+      let regexPattern = tt.regexp.toString();
       regexPattern = regexPattern.substr(1, regexPattern.length - 2);
       if (regexPattern.indexOf("^") === 0) {
         regexPattern = regexPattern.substr(1);
@@ -25,7 +25,7 @@ class tmLanguage {
       // This is used in the colour schemes of text editors to give
       // tokens appropriate colours. Token types can supply these roles
 
-      var nameParts;
+      let nameParts;
       if (typeof tt.role === "string") {
         nameParts = [tt.role];
       } else {
@@ -38,8 +38,8 @@ class tmLanguage {
         nameParts.push(lexer.options.languageName);
       }
 
-      var noDups = [];
-      for (var i = 0; i < nameParts.length; i++) {
+      const noDups = [];
+      for (let i = 0; i < nameParts.length; i++) {
         if (noDups.indexOf(nameParts[i]) === -1) {
           noDups.push(nameParts[i]);
         }
@@ -51,7 +51,7 @@ class tmLanguage {
       });
     });
 
-    var result = build(languageDef);
+    const result = build(languageDef);
 
     return result;
   }

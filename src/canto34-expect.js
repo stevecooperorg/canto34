@@ -8,10 +8,10 @@ const fail = message => ({
   pass: false
 });
 
-let expectMatchers = {
+export const expectMatchers = {
   toHaveTokenTypes(actual, expected) {
-    let actualLength = actual.length;
-    let expectedLength = expected.length;
+    const actualLength = actual.length;
+    const expectedLength = expected.length;
 
     if (actualLength !== expectedLength) {
       return fail(
@@ -20,8 +20,8 @@ let expectMatchers = {
     }
 
     for (let i = 0; i < actualLength; i++) {
-      let actualType = actual[i].type;
-      let expectedType = expected[i];
+      const actualType = actual[i].type;
+      const expectedType = expected[i];
       if (actualType !== expectedType) {
         return fail(
           `Expected token type '${expectedType}' but found '${actualType}' at index ${i}`
@@ -32,10 +32,10 @@ let expectMatchers = {
     return pass("");
   },
   toHaveTokenContent(actual, expected) {
-    let msg = "";
+    const msg = "";
 
-    let actualLength = actual.length;
-    let expectedLength = expected.length;
+    const actualLength = actual.length;
+    const expectedLength = expected.length;
 
     if (actualLength !== expectedLength) {
       return fail(
@@ -44,8 +44,8 @@ let expectMatchers = {
     }
 
     for (let i = 0; i < actualLength; i++) {
-      let actualContent = actual[i].content;
-      let expectedContent = expected[i];
+      const actualContent = actual[i].content;
+      const expectedContent = expected[i];
 
       if (actualContent !== expectedContent) {
         return fail(
@@ -72,5 +72,3 @@ let expectMatchers = {
     return pass("");
   }
 };
-
-export { expectMatchers };
