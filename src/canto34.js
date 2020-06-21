@@ -309,6 +309,9 @@ export class StandardTokenTypes {
         let ch;
         let finished = false;
         do {
+          if (remaining.slice(pos).indexOf('"') === -1) {
+            return fail;
+          }
           ch = remaining[pos];
           pos += 1;
 
