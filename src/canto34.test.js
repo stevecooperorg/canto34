@@ -367,6 +367,14 @@ describe("the lexer standard JSON string type", () => {
     expect(tokens).toHaveTokenContent(["abc"]);
   });
 
+  it("should not cause a heap overflow on unterminated string", () => {
+  
+    expect(() => {
+      const tokens = lexer.tokenize('"abc');
+    }).toThrow("No viable alternative at 1.1: '\"abc...");
+
+  });
+
   it("should parse a \\t escape character", () => {
     const tokens = lexer.tokenize('"a\\tc"');
     expect(tokens).toHaveTokenContent(["a\tc"]);
